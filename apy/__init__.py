@@ -5,16 +5,16 @@
 
 from __future__ import print_function, division
 
-from abc import ABCMeta, abstractmethod
+import requests
 
+from .scheme.mvn import MavenArtifactoryClient, MavenArtifactoryClientConfig
 
-class ArtifactoryClient(object):
-    __metaclass__ = ABCMeta
+def new_maven_client(base_url=None, repo=None, username=None, password=None):
+    config = MavenArtifactoryClientConfig()
+    config.base_url = base_url
+    config.repo = repo
+    config.username = username
+    config.password = password
+    config.session = requests.Session()
 
-    @abstractmethod
-    def get_latest_release(self, artifact, group):
-        pass
-
-    @abstractmethod
-    def get_latest_releases(self, artifact, group, limit=None):
-        pass
+    return MavenArtifactoryClient(config)
