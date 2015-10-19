@@ -6,6 +6,7 @@
 import distutils.version
 
 import artifactory
+import requests
 import apy.scheme.base
 import apy.util
 
@@ -14,7 +15,6 @@ class MavenArtifactoryClientConfig(object):
     def __init__(self):
         self.base_url = None
         self.repo = None
-        self.session = None
         self.username = None
         self.password = None
 
@@ -28,7 +28,7 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
         path_factory = _ArtifactoryPathFactory(config.username, config.password)
         self._artifact_urls = _ArtifactUrlGenerator(path_factory, config.base_url, config.repo)
         self._api_urls = _ApiUrlGenerator(config.base_url, config.repo)
-        self._session = config.session
+        self._session = requests.Session()
 
     def get_release(self, group, artifact, version):
         url = self._artifact_urls.get_release_url(group, artifact, version)
@@ -91,6 +91,18 @@ class _ArtifactoryPathFactory(object):
         return artifactory.ArtifactoryPath(*args, **kwargs)
 
 
+class _RequestsSessionFactory(object):
+    def __init__(self, username, password):
+        self._username = username
+        self._password = password
+
+    def __call__(self):
+        session = requests.Session()
+        if self._username is not None and self._password is not None:
+            session.auth = (self._username, self._password)
+        return session
+
+
 class _ArtifactUrlGenerator(object):
     def __init__(self, path_factory, base, repo):
         self._path_factory = path_factory
@@ -118,7 +130,7 @@ class _ArtifactUrlGenerator(object):
         # give a meaningful exception here instead of blowing up later during the
         # part where we try to find the right extension. Maybe return a tuple of the
         # base URL and the glob? Allow callers to decide if they want to call it?
-        #if not url.exists():
+        # if not url.exists():
         #    raise IOError("Artifact URL {0} does not appear to exist".format(url))
         return url.glob(artifact_name + ".*")
 

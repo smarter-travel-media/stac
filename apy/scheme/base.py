@@ -22,3 +22,6 @@ class ArtifactoryClient(object):
     @abstractmethod
     def get_latest_releases(self, group, artifact, limit=DEFAULT_RELEASE_LIMIT):
         pass
+
+
+
