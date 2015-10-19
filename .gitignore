@@ -1,0 +1,9 @@
+*.pyc
+*.pyo
+pyenv
+env
+.pyenv
+.env
+.idea
+.tox
+*.egg-info
