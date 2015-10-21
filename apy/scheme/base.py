@@ -12,15 +12,15 @@ class ArtifactoryClient(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_release(self, group, artifact, version):
+    def get_release(self, full_name, version):
         pass
 
     @abstractmethod
-    def get_latest_release(self, group, artifact):
+    def get_latest_release(self, full_name):
         pass
 
     @abstractmethod
-    def get_latest_releases(self, group, artifact, limit=DEFAULT_RELEASE_LIMIT):
+    def get_latest_releases(self, full_name, limit=DEFAULT_RELEASE_LIMIT):
         pass
 
 

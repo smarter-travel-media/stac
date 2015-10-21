@@ -31,20 +31,23 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
         path_factory = apy.artifacts.AuthenticatedPathFactory(config.username, config.password)
         self._artifact_urls = _MavenArtifactUrlGenerator(path_factory, config.base_url, config.repo)
 
-    def get_release(self, group, artifact, version):
+    def get_release(self, full_name, version):
+        group, artifact = full_name.rsplit('.', 1)
         url = self._artifact_urls.get_release_url(group, artifact, version)
         return self._get_preferred_result_by_ext(url)
 
-    def get_latest_release(self, group, artifact):
+    def get_latest_release(self, full_name):
+        group, artifact = full_name.rsplit('.', 1)
         version = self._api_client.get_most_recent_release(group, artifact)
 
         return self._get_preferred_result_by_ext(
             self._artifact_urls.get_release_url(group, artifact, version))
 
-    def get_latest_releases(self, group, artifact, limit=apy.scheme.base.DEFAULT_RELEASE_LIMIT):
+    def get_latest_releases(self, full_name, limit=apy.scheme.base.DEFAULT_RELEASE_LIMIT):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
+        group, artifact = full_name.rsplit('.', 1)
         versions = self._api_client.get_most_recent_releases(group, artifact, limit)
 
         out = []
