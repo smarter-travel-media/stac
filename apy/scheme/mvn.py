@@ -3,12 +3,11 @@
 """
 """
 
-import distutils.version
-
-import artifactory
-import requests
 import apy.scheme.base
+
+import apy.artifacts
 import apy.util
+import apy.versions
 
 
 class MavenArtifactoryClientConfig(object):
@@ -25,23 +24,20 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
     _extensions = ['.war', '.jar', '.pom']
 
     def __init__(self, config):
-        path_factory = _ArtifactoryPathFactory(config.username, config.password)
-        self._artifact_urls = _ArtifactUrlGenerator(path_factory, config.base_url, config.repo)
-        self._api_urls = _ApiUrlGenerator(config.base_url, config.repo)
-        self._session = requests.Session()
+        session_factory = apy.versions.AuthenticatedSessionFactory(config.username, config.password)
+        api_url_generator = apy.versions.VersionApiUrlGenerator(config.base_url, config.repo)
+        self._api_client = apy.versions.VersionApiClient(session_factory, api_url_generator)
+
+        path_factory = apy.artifacts.AuthenticatedPathFactory(config.username, config.password)
+        self._artifact_urls = _MavenArtifactUrlGenerator(path_factory, config.base_url, config.repo)
 
     def get_release(self, group, artifact, version):
         url = self._artifact_urls.get_release_url(group, artifact, version)
         return self._get_preferred_result_by_ext(url)
 
     def get_latest_release(self, group, artifact):
-        url, params = self._api_urls.get_latest_version_url(group, artifact)
-        self._logger.debug("Using latest version API at %s - params %s", url, params)
+        version = self._api_client.get_most_recent_release(group, artifact)
 
-        r = self._session.get(str(url), params=params)
-        r.raise_for_status()
-
-        version = r.text.strip()
         return self._get_preferred_result_by_ext(
             self._artifact_urls.get_release_url(group, artifact, version))
 
@@ -49,27 +45,18 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
-        url, params = self._api_urls.get_all_version_url(group, artifact)
-        self._logger.debug("Using all version API at %s - params %s", url, params)
-
-        r = self._session.get(str(url), params=params)
-        r.raise_for_status()
-
-        response = r.json()
-        versions = [item['version'] for item in response['results']]
-        versions.sort(key=distutils.version.LooseVersion, reverse=True)
-        recent_versions = versions[:limit]
+        versions = self._api_client.get_most_recent_releases(group, artifact, limit)
 
         out = []
-        for version in recent_versions:
+        for version in versions:
             out.append(
                 self._get_preferred_result_by_ext(
                     self._artifact_urls.get_release_url(group, artifact, version)))
 
         return out
 
-    def _get_preferred_result_by_ext(self, result_generator):
-        by_extension = dict((p.suffix, p) for p in result_generator)
+    def _get_preferred_result_by_ext(self, results):
+        by_extension = dict((p.suffix, p) for p in results)
         self._logger.debug("Found potential artifacts by extension - %s", by_extension)
 
         for ext in self._extensions:
@@ -80,30 +67,7 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
             "Unable to find any acceptable extensions in mapping {0}".format(by_extension))
 
 
-class _ArtifactoryPathFactory(object):
-    def __init__(self, username, password):
-        self._username = username
-        self._password = password
-
-    def __call__(self, *args, **kwargs):
-        if self._username is not None and self._password is not None:
-            kwargs['auth'] = (self._username, self._password)
-        return artifactory.ArtifactoryPath(*args, **kwargs)
-
-
-class _RequestsSessionFactory(object):
-    def __init__(self, username, password):
-        self._username = username
-        self._password = password
-
-    def __call__(self):
-        session = requests.Session()
-        if self._username is not None and self._password is not None:
-            session.auth = (self._username, self._password)
-        return session
-
-
-class _ArtifactUrlGenerator(object):
+class _MavenArtifactUrlGenerator(object):
     def __init__(self, path_factory, base, repo):
         self._path_factory = path_factory
         self._base = base
@@ -133,18 +97,3 @@ class _ArtifactUrlGenerator(object):
         # if not url.exists():
         #    raise IOError("Artifact URL {0} does not appear to exist".format(url))
         return url.glob(artifact_name + ".*")
-
-
-# TODO: Auth?!
-class _ApiUrlGenerator(object):
-    def __init__(self, base, repo):
-        self._base = base
-        self._repo = repo
-
-    def get_latest_version_url(self, group, artifact):
-        url = self._base + '/api/search/latestVersion'
-        return url, {'g': group, 'a': artifact, 'repos': self._repo}
-
-    def get_all_version_url(self, group, artifact):
-        url = self._base + '/api/search/versions'
-        return url, {'g': group, 'a': artifact, 'repos': self._repo}
