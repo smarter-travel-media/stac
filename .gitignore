@@ -7,3 +7,4 @@ env
 .idea
 .tox
 *.egg-info
+_build
