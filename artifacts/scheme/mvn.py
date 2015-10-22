@@ -35,9 +35,8 @@ class MavenArtifactoryClientConfig(object):
 class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
     _logger = artifacts.util.get_log()
 
-    _extensions = ['.war', '.jar', '.pom']
-
     def __init__(self, config):
+        self.extensions = ['.war', '.jar', '.pom']
         self._version_client = config.version_client
         self._artifact_urls = _MavenArtifactUrlGenerator(
             config.path_factory, config.base_url, config.repo)
@@ -88,7 +87,7 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
         by_extension = dict((p.suffix, p) for p in results)
         self._logger.debug("Found potential artifacts by extension - %s", by_extension)
 
-        for ext in self._extensions:
+        for ext in self.extensions:
             if ext in by_extension:
                 return by_extension[ext]
         return None
