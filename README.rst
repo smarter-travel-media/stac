@@ -1,5 +1,7 @@
-APY - Python Artifactory Search Client
---------------------------------------
+Artifacts - Python Artifactory Search Client
+--------------------------------------------
+
+
 
 
 
