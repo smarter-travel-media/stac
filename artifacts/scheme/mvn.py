@@ -3,33 +3,44 @@
 """
 """
 
-import apy.scheme.base
+import artifacts.scheme.base
 
-import apy.artifacts
-import apy.util
-import apy.versions
+import artifacts.path
+import artifacts.util
+import artifacts.client
+
+
+def new_maven_client(base_url, repo, username=None, password=None):
+    session_factory = artifacts.client.AuthenticatedSessionFactory(username, password)
+    api_url_generator = artifacts.client.VersionApiUrlGenerator(base_url, repo)
+    version_client = artifacts.client.VersionApiClient(session_factory, api_url_generator)
+    path_factory = artifacts.path.AuthenticatedPathFactory(username, password)
+
+    config = MavenArtifactoryClientConfig()
+    config.base_url = base_url
+    config.repo = repo
+    config.version_client = version_client
+    config.path_factory = path_factory
+
+    return MavenArtifactoryClient(config)
 
 
 class MavenArtifactoryClientConfig(object):
     def __init__(self):
         self.base_url = None
         self.repo = None
-        self.username = None
-        self.password = None
+        self.version_client = None
+        self.path_factory = None
 
 
-class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
-    _logger = apy.util.get_log()
+class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
+    _logger = artifacts.util.get_log()
 
     _extensions = ['.war', '.jar', '.pom']
 
     def __init__(self, config):
-        session_factory = apy.versions.AuthenticatedSessionFactory(config.username, config.password)
-        api_url_generator = apy.versions.VersionApiUrlGenerator(config.base_url, config.repo)
-        self._api_client = apy.versions.VersionApiClient(session_factory, api_url_generator)
-
-        path_factory = apy.artifacts.AuthenticatedPathFactory(config.username, config.password)
-        self._artifact_urls = _MavenArtifactUrlGenerator(path_factory, config.base_url, config.repo)
+        self._version_client = config.version_client
+        self._artifact_urls = _MavenArtifactUrlGenerator(config.path_factory, config.base_url, config.repo)
 
     def get_release(self, full_name, version):
         group, artifact = full_name.rsplit('.', 1)
@@ -38,17 +49,17 @@ class MavenArtifactoryClient(apy.scheme.base.ArtifactoryClient):
 
     def get_latest_release(self, full_name):
         group, artifact = full_name.rsplit('.', 1)
-        version = self._api_client.get_most_recent_release(group, artifact)
+        version = self._version_client.get_most_recent_release(group, artifact)
 
         return self._get_preferred_result_by_ext(
             self._artifact_urls.get_release_url(group, artifact, version))
 
-    def get_latest_releases(self, full_name, limit=apy.scheme.base.DEFAULT_RELEASE_LIMIT):
+    def get_latest_releases(self, full_name, limit=artifacts.scheme.base.DEFAULT_RELEASE_LIMIT):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
         group, artifact = full_name.rsplit('.', 1)
-        versions = self._api_client.get_most_recent_releases(group, artifact, limit)
+        versions = self._version_client.get_most_recent_releases(group, artifact, limit)
 
         out = []
         for version in versions:
@@ -77,18 +88,8 @@ class _MavenArtifactUrlGenerator(object):
         self._repo = repo
 
     def get_release_url(self, group, artifact, version):
-        return self._get_artifact_url(group, artifact, version, is_snapshot=False)
-
-    def get_snapshot_url(self, group, artifact, version):
-        return self._get_artifact_url(group, artifact, version, is_snapshot=True)
-
-    def _get_artifact_url(self, group, artifact, version, is_snapshot=False):
         group_path = group.replace('.', '/')
-
-        if is_snapshot:
-            artifact_name = "{0}-{1}-SNAPSHOT".format(artifact, version)
-        else:
-            artifact_name = "{0}-{1}".format(artifact, version)
+        artifact_name = "{0}-{1}".format(artifact, version)
 
         url = self._path_factory(self._base + '/' + self._repo)
         url = url.joinpath(group_path, artifact, version)

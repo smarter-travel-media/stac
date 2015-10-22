@@ -8,9 +8,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
+import artifacts
 
 AUTHOR = 'Smarter Travel'
-VERSION = '0.1.0'
+VERSION = artifacts.__version__
 EMAIL = ''
 DESCRIPTION = ''
 URL = ''
@@ -37,7 +38,7 @@ with codecs.open('README.rst', 'r', 'utf-8') as handle:
     LONG_DESCRIPTION = handle.read()
 
 setup(
-    name='apy',
+    name='artifacts',
     version=VERSION,
     author=AUTHOR,
     description=DESCRIPTION,
@@ -48,4 +49,4 @@ setup(
     url=URL,
     install_requires=REQUIREMENTS,
     zip_safe=True,
-    packages=['apy'])
+    packages=['artifacts'])

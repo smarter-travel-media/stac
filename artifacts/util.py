@@ -11,4 +11,4 @@ def get_log():
 
     :return:
     """
-    return logging.getLogger('apy')
+    return logging.getLogger('artifacts')

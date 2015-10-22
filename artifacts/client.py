@@ -6,12 +6,12 @@
 import distutils.version
 
 import requests
-import apy.scheme.base
-import apy.util
+import artifacts.scheme.base
+import artifacts.util
 
 
 class VersionApiClient(object):
-    _logger = apy.util.get_log()
+    _logger = artifacts.util.get_log()
 
     def __init__(self, session_factory, url_factory):
         self._session_factory = session_factory
