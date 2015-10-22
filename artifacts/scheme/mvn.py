@@ -3,11 +3,10 @@
 """
 """
 
-import artifacts.scheme.base
-
-import artifacts.path
-import artifacts.util
 import artifacts.client
+import artifacts.path
+import artifacts.scheme.base
+import artifacts.util
 
 
 def new_maven_client(base_url, repo, username=None, password=None):
@@ -40,19 +39,27 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
 
     def __init__(self, config):
         self._version_client = config.version_client
-        self._artifact_urls = _MavenArtifactUrlGenerator(config.path_factory, config.base_url, config.repo)
+        self._artifact_urls = _MavenArtifactUrlGenerator(
+            config.path_factory, config.base_url, config.repo)
 
     def get_release(self, full_name, version):
         group, artifact = full_name.rsplit('.', 1)
-        url = self._artifact_urls.get_release_url(group, artifact, version)
-        return self._get_preferred_result_by_ext(url)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+        release = self._get_preferred_result_by_ext(matches)
+
+        if release is None:
+            raise RuntimeError("Could not find any artifacts for {0}".format(base))
+        return release
 
     def get_latest_release(self, full_name):
         group, artifact = full_name.rsplit('.', 1)
         version = self._version_client.get_most_recent_release(group, artifact)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+        release = self._get_preferred_result_by_ext(matches)
 
-        return self._get_preferred_result_by_ext(
-            self._artifact_urls.get_release_url(group, artifact, version))
+        if release is None:
+            raise RuntimeError("Could not find any artifacts for {0}".format(base))
+        return release
 
     def get_latest_releases(self, full_name, limit=artifacts.scheme.base.DEFAULT_RELEASE_LIMIT):
         if limit < 1:
@@ -63,9 +70,17 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
 
         out = []
         for version in versions:
-            out.append(
-                self._get_preferred_result_by_ext(
-                    self._artifact_urls.get_release_url(group, artifact, version)))
+            base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+            release = self._get_preferred_result_by_ext(matches)
+
+            if release is not None:
+                self._logger.debug(
+                    "Found artifact %s for version %s of %s", release, version, full_name)
+                out.append(release)
+            else:
+                self._logger.debug(
+                    "Could not find any artifact for version %s of %s - %s",
+                    version, full_name, base)
 
         return out
 
@@ -76,9 +91,7 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
         for ext in self._extensions:
             if ext in by_extension:
                 return by_extension[ext]
-
-        raise ValueError(
-            "Unable to find any acceptable extensions in mapping {0}".format(by_extension))
+        return None
 
 
 class _MavenArtifactUrlGenerator(object):
@@ -94,10 +107,4 @@ class _MavenArtifactUrlGenerator(object):
         url = self._path_factory(self._base + '/' + self._repo)
         url = url.joinpath(group_path, artifact, version)
 
-        # TODO: This is an extra HTTP request per artifact but it means we can
-        # give a meaningful exception here instead of blowing up later during the
-        # part where we try to find the right extension. Maybe return a tuple of the
-        # base URL and the glob? Allow callers to decide if they want to call it?
-        # if not url.exists():
-        #    raise IOError("Artifact URL {0} does not appear to exist".format(url))
-        return url.glob(artifact_name + ".*")
+        return url, url.glob(artifact_name + ".*")
