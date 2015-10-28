@@ -1,5 +1,5 @@
-Artifacts - Python Artifactory Search Client
---------------------------------------------
+Artifacts - Artifactory Search Client
+-------------------------------------
 
 
 

@@ -14,7 +14,7 @@ AUTHOR = 'Smarter Travel'
 VERSION = artifacts.__version__
 EMAIL = ''
 DESCRIPTION = ''
-URL = ''
+URL = 'https://github.com/smarter-travel-media/artifacts'
 LICENSE = 'MIT'
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
