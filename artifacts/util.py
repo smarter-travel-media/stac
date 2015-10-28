@@ -11,15 +11,16 @@
 artifacts.util
 ~~~~~~~~~~~~~~
 
-
+Miscellaneous utility methods for the Artifacts library.
 """
 
 import logging
 
 
 def get_log():
-    """
+    """Get the singleton :class:`logging.Logger` instance for the Artifacts library.
 
-    :return:
+    :return: The logger instance for the library
+    :rtype: logging.Logger
     """
     return logging.getLogger('artifacts')

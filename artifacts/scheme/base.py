@@ -11,6 +11,7 @@
 artifacts.scheme.base
 ~~~~~~~~~~~~~~~~~~~~~
 
+Interface for clients that interact with Artifactory.
 """
 
 from abc import ABCMeta, abstractmethod
@@ -19,6 +20,15 @@ DEFAULT_RELEASE_LIMIT = 5
 
 
 class ArtifactoryClient(object):
+    """Interface for getting artifact paths based on an artifact name.
+
+
+
+
+
+
+    """
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -32,6 +42,3 @@ class ArtifactoryClient(object):
     @abstractmethod
     def get_latest_releases(self, full_name, limit=DEFAULT_RELEASE_LIMIT):
         pass
-
-
-

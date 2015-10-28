@@ -11,5 +11,5 @@
 artifacts.scheme
 ~~~~~~~~~~~~~~~~
 
-
+Client implementations for different Artifactory repository layouts.
 """

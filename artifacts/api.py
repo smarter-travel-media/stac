@@ -8,11 +8,10 @@
 #
 
 """
-
 artifacts.api
 ~~~~~~~~~~~~~
 
-
+Public API of the Artifacts library.
 """
 
 __all__ = [

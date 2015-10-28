@@ -11,6 +11,7 @@
 artifacts.scheme.mvn
 ~~~~~~~~~~~~~~~~~~~~
 
+Maven repository layout ArtifactoryClient implementation.
 """
 
 import artifacts.client

@@ -11,7 +11,7 @@
 artifacts.client
 ~~~~~~~~~~~~~~~~
 
-
+Clients for interacting with the Artifactory JSON API.
 """
 
 import distutils.version

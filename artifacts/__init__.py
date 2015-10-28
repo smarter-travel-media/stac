@@ -11,7 +11,7 @@
 artifacts
 ~~~~~~~~~
 
-
+Artifactory search client.
 """
 
 __version__ = '0.1.0'
