@@ -17,7 +17,7 @@ DESCRIPTION = ''
 URL = 'https://github.com/smarter-travel-media/artifacts'
 LICENSE = 'MIT'
 CLASSIFIERS = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX",
     "Programming Language :: Python",
