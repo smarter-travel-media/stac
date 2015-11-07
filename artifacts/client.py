@@ -14,6 +14,8 @@ artifacts.client
 Clients for interacting with the Artifactory JSON API.
 """
 
+from __future__ import absolute_import
+
 import distutils.version
 
 import requests

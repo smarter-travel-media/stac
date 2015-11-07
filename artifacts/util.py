@@ -14,6 +14,8 @@ artifacts.util
 Miscellaneous utility methods for the Artifacts library.
 """
 
+from __future__ import absolute_import
+
 import logging
 
 

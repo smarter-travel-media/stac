@@ -14,6 +14,8 @@ artifacts.api
 Public API of the Artifacts library.
 """
 
+from __future__ import absolute_import
+
 __all__ = [
     'new_maven_client',
     'MavenArtifactoryClient',

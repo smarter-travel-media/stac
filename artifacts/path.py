@@ -14,6 +14,8 @@ artifacts.path
 pathlib like manipulations of Artifactory URLs and paths.
 """
 
+from __future__ import absolute_import
+
 import artifactory
 
 

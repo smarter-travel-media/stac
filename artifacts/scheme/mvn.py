@@ -14,6 +14,8 @@ artifacts.scheme.mvn
 Maven repository layout ArtifactoryClient implementation.
 """
 
+from __future__ import absolute_import
+
 import artifacts.client
 import artifacts.path
 import artifacts.scheme.base

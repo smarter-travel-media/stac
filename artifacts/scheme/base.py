@@ -14,6 +14,8 @@ artifacts.scheme.base
 Interface for clients that interact with Artifactory.
 """
 
+from __future__ import absolute_import
+
 from abc import ABCMeta, abstractmethod
 
 DEFAULT_RELEASE_LIMIT = 5
