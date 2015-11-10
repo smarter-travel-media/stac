@@ -49,31 +49,35 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
     _logger = artifacts.util.get_log()
 
     def __init__(self, config):
+        #: List of extensions that artifacts are expected to use, in order in which they
+        #: will be preferred when finding the artifact that corresponds to a particular
+        #: release or integration version
         self.extensions = ['.war', '.jar', '.pom']
+
         self._version_client = config.version_client
         self._artifact_urls = _MavenArtifactUrlGenerator(
             config.path_factory, config.base_url, config.repo)
 
-    def get_release(self, full_name, version):
+    def get_release(self, full_name, version, descriptor=None):
         group, artifact = full_name.rsplit('.', 1)
-        base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
         release = self._get_preferred_result_by_ext(matches)
 
         if release is None:
             raise RuntimeError("Could not find any artifacts for {0}".format(base))
         return release
 
-    def get_latest_release(self, full_name):
+    def get_latest_release(self, full_name, descriptor=None):
         group, artifact = full_name.rsplit('.', 1)
         version = self._version_client.get_most_recent_release(group, artifact)
-        base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
         release = self._get_preferred_result_by_ext(matches)
 
         if release is None:
             raise RuntimeError("Could not find any artifacts for {0}".format(base))
         return release
 
-    def get_latest_releases(self, full_name, limit=artifacts.scheme.base.DEFAULT_RELEASE_LIMIT):
+    def get_latest_releases(self, full_name, descriptor=None, limit=artifacts.scheme.base.DEFAULT_RELEASE_LIMIT):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
@@ -82,7 +86,7 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
 
         out = []
         for version in versions:
-            base, matches = self._artifact_urls.get_release_url(group, artifact, version)
+            base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
             release = self._get_preferred_result_by_ext(matches)
 
             if release is not None:
@@ -112,9 +116,13 @@ class _MavenArtifactUrlGenerator(object):
         self._base = base
         self._repo = repo
 
-    def get_release_url(self, group, artifact, version):
+    def get_release_url(self, group, artifact, version, descriptor):
         group_path = group.replace('.', '/')
-        artifact_name = "{0}-{1}".format(artifact, version)
+
+        if descriptor is not None:
+            artifact_name = "{0}-{1}-{2}".format(artifact, version, descriptor)
+        else:
+            artifact_name = "{0}-{1}".format(artifact, version)
 
         url = self._path_factory(self._base + '/' + self._repo)
         url = url.joinpath(group_path, artifact, version)

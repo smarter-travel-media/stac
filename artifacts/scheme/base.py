@@ -34,13 +34,14 @@ class ArtifactoryClient(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_release(self, full_name, version):
+    def get_release(self, full_name, version, descriptor=None):
         pass
 
     @abstractmethod
-    def get_latest_release(self, full_name):
+    def get_latest_release(self, full_name, descriptor=None):
         pass
 
     @abstractmethod
-    def get_latest_releases(self, full_name, limit=DEFAULT_RELEASE_LIMIT):
+    def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
         pass
+
