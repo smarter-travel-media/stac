@@ -51,8 +51,12 @@ class MavenArtifactoryClient(artifacts.scheme.base.ArtifactoryClient):
     def __init__(self, config):
         #: List of extensions that artifacts are expected to use, in order in which they
         #: will be preferred when finding the artifact that corresponds to a particular
-        #: release or integration version
-        self.extensions = ['.war', '.jar', '.pom']
+        #: release or integration version. Note that some non-traditional Maven artifact
+        #: extentions are used. This is done to support possible formats used by Maven
+        #: assemblies. Note that only artifacts with a single extension are supported. So
+        #: for example, 'myapp-1.2.3-sources.tar.gz' won't work, 'myapp-1.2.3-sources.tgz'
+        #: will.
+        self.extensions = ['.war', '.jar', '.zip', '.tgz', '.tbz2', '.tar', '.pom']
 
         self._version_client = config.version_client
         self._artifact_urls = _MavenArtifactUrlGenerator(
