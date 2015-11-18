@@ -22,7 +22,7 @@ __all__ = [
     'MavenArtifactoryClientConfig'
 ]
 
-from .scheme.mvn import (
+from .client import (
     new_maven_client,
     MavenArtifactoryClient,
     MavenArtifactoryClientConfig,

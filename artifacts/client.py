@@ -11,154 +11,183 @@
 artifacts.client
 ~~~~~~~~~~~~~~~~
 
-Clients for interacting with the Artifactory JSON API.
+Interface for clients that interact with Artifactory and Maven implementation.
 """
 
 from __future__ import absolute_import
 
-import distutils.version
+from abc import ABCMeta, abstractmethod
 
-import requests
-import artifacts.scheme.base
+import artifacts.http
+import artifacts.path
 import artifacts.util
 
+DEFAULT_RELEASE_LIMIT = 5
 
-class VersionApiClient(object):
-    """Client to get one or multiple versions of a particular artifact.
 
-    This client interacts with the Artifactory API over HTTP or HTTPS.
+class ArtifactoryClient(object):
+    """Interface for getting artifact paths based on an artifact name.
+
+    How artifact names and descriptors are interpreted is implementation
+    specific and typically based on a particular repository layout. For example
+    a Maven layout based client would use ``full_name`` for the full group and
+    artifact (e.g. 'com.example.project.service'). While a Python layout based
+    client would use ``full_name`` as unique name in a flat namespace (e.g
+    'my-project').
     """
+
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def get_release(self, full_name, version, descriptor=None):
+        """Get the path to a specific release of the given project, optionally using
+        a descriptor to get a particular variant of the release (associated sources vs
+        the actual application for example). How the ``full_name`` and ``descriptor``
+        are used is implementation dependent.
+
+        :param str full_name: Fully qualified name of the artifact to get the path of.
+        :param str version: Version of the artifact to get the path of.
+        :param str descriptor: Tag to get a particular variant of a release.
+        :return: Artifactory URL/path to the artifact with given name and version
+        :rtype: artifactory.ArtifactoryPath
+        """
+
+    @abstractmethod
+    def get_latest_release(self, full_name, descriptor=None):
+        """Get the path to the most recent release of the given project, optionally using
+        a descriptor to get a particular variant of the release (associated sources vs the
+        actual application for example). How the ``full_name`` and ``descriptor`` are used
+        is implementation dependent.
+
+        :param str full_name: Fully qualified name of the artifact to get the path of.
+        :param str descriptor: Tag to get a particular variant of a release.
+        :return: Artifactory URL/path to the artifact with given name
+        :rtype: artifactory.ArtifactoryPath
+        """
+
+    @abstractmethod
+    def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
+        """Get the paths to the most recent releases of the given project, optionally using
+        a descriptor to get a particular variant of the releases (associated sources vs the
+        actual application for example). How the ``full_name`` and ``descriptor`` are used
+        is implementation dependent.
+
+        :param str full_name: Full qualified name of the artifacts to get the path of.
+        :param str descriptor: Tag to get a particular variant of each release
+        :param int limit: Only get the ``limit`` most recent releases.
+        :return: Artifactory URL/path to each of the most recent artifacts with the
+            given name
+        :rtype: list
+        """
+
+
+def new_maven_client(base_url, repo, username=None, password=None):
+    session_factory = artifacts.http.AuthenticatedSessionFactory(username, password)
+    api_url_generator = artifacts.http.VersionApiUrlGenerator(base_url, repo)
+    version_client = artifacts.http.VersionApiClient(session_factory, api_url_generator)
+    path_factory = artifacts.path.AuthenticatedPathFactory(username, password)
+
+    config = MavenArtifactoryClientConfig()
+    config.base_url = base_url
+    config.repo = repo
+    config.version_client = version_client
+    config.path_factory = path_factory
+
+    return MavenArtifactoryClient(config)
+
+
+class MavenArtifactoryClientConfig(object):
+    def __init__(self):
+        self.base_url = None
+        self.repo = None
+        self.version_client = None
+        self.path_factory = None
+
+
+class MavenArtifactoryClient(ArtifactoryClient):
     _logger = artifacts.util.get_log()
 
-    def __init__(self, session_factory, url_factory):
-        """Set the factory for requests session and factory for API urls.
+    def __init__(self, config):
+        #: List of extensions that artifacts are expected to use, in order in which they
+        #: will be preferred when finding the artifact that corresponds to a particular
+        #: release or integration version. Note that some non-traditional Maven artifact
+        #: extentions are used. This is done to support possible formats used by Maven
+        #: assemblies. Note that only artifacts with a single extension are supported. So
+        #: for example, 'myapp-1.2.3-sources.tar.gz' won't work, 'myapp-1.2.3-sources.tgz'
+        #: will.
+        self.extensions = ['.war', '.jar', '.zip', '.tgz', '.tbz2', '.tar', '.pom']
 
-        :param AuthenticatedSessionFactory session_factory: Factory for new
-            :class:`requests.Session` instances, optionally with authentication
-            injected.
-        :param VersionApiUrlGenerator url_factory: Factory for creating new
-            URL and parameter pairs for making requests to the Artifactory API.
-        """
-        self._session_factory = session_factory
-        self._url_factory = url_factory
+        self._version_client = config.version_client
+        self._artifact_urls = _MavenArtifactUrlGenerator(
+            config.path_factory, config.base_url, config.repo)
 
-    def get_most_recent_release(self, group, artifact):
-        """Get the version number of the most recent release (non-integration version)
-        of a particular group and artifact combination.
+    def get_release(self, full_name, version, descriptor=None):
+        group, artifact = full_name.rsplit('.', 1)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+        release = self._get_preferred_result_by_ext(matches)
 
-        :param unicode|str group: Group of the artifact to get the version of
-        :param unicode|str artifact: Name of the artifact to get the version of
-        :return: Version number of the most recent release
-        :rtype: unicode|str
-        :raises requests.exceptions.HTTPError: For any non-success HTTP responses
-            from the Artifactory API.
-        """
-        url, params = self._url_factory.get_latest_version_url(group, artifact)
-        self._logger.debug("Using latest version API at %s - params %s", url, params)
+        if release is None:
+            raise RuntimeError("Could not find any artifacts for {0}".format(base))
+        return release
 
-        r = self._session_factory().get(url, params=params)
-        r.raise_for_status()
+    def get_latest_release(self, full_name, descriptor=None):
+        group, artifact = full_name.rsplit('.', 1)
+        version = self._version_client.get_most_recent_release(group, artifact)
+        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+        release = self._get_preferred_result_by_ext(matches)
 
-        return r.text.strip()
+        if release is None:
+            raise RuntimeError("Could not find any artifacts for {0}".format(base))
+        return release
 
-    def get_most_recent_releases(self, group, artifact, limit):
-        """Get a list of the version numbers of the most recent releases (non-integration
-        versions), ordered by the version number, for a particular group and artifact
-        combination.
-
-        :param unicode|str group: Group of the artifact to get versions of
-        :param unicode|str artifact: Name of the artifact to get versions of
-        :param limit: Fetch only this many of the most recent releases
-        :return: Version numbers of the most recent releases
-        :rtype: list
-        :raises requests.exceptions.HTTPError: For any non-success HTTP responses
-            from the Artifactory API.
-        :raises ValueError: If limit is 0 or negative.
-        """
+    def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
-        url, params = self._url_factory.get_all_version_url(group, artifact)
-        self._logger.debug("Using all version API at %s - params %s", url, params)
+        group, artifact = full_name.rsplit('.', 1)
+        versions = self._version_client.get_most_recent_releases(group, artifact, limit)
 
-        r = self._session_factory().get(url, params=params)
-        r.raise_for_status()
+        out = []
+        for version in versions:
+            base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+            release = self._get_preferred_result_by_ext(matches)
 
-        response = r.json()
-        versions = [item['version'] for item in response['results']]
-        versions.sort(key=distutils.version.LooseVersion, reverse=True)
-        return versions[:limit]
+            if release is not None:
+                self._logger.debug(
+                    "Found artifact %s for version %s of %s", release, version, full_name)
+                out.append(release)
+            else:
+                self._logger.debug(
+                    "Could not find any artifact for version %s of %s - %s",
+                    version, full_name, base)
 
+        return out
 
-class AuthenticatedSessionFactory(object):
-    """Factory for creating new :class:`requests.Session` instances with
-    username/password authentication injected if available.
-    """
+    def _get_preferred_result_by_ext(self, results):
+        by_extension = dict((p.suffix, p) for p in results)
+        self._logger.debug("Found potential artifacts by extension - %s", by_extension)
 
-    def __init__(self, username, password):
-        """Set the username and password to use.
-
-        :param unicode|str username: Username to use for authentication with
-            the Artifactory API. May be ``None``.
-        :param unicode|str password: Password to use for authentication with
-            the Artifactory API. May be ``None``.
-
-        """
-        self._username = username
-        self._password = password
-
-    def __call__(self):
-        """Get a new session with authentication injected, if available.
-
-        :return: New session for making HTTP requests, with authentication
-        :rtype: requests.Session
-        """
-        session = requests.Session()
-        if self._username is not None and self._password is not None:
-            session.auth = (self._username, self._password)
-        return session
+        for ext in self.extensions:
+            if ext in by_extension:
+                return by_extension[ext]
+        return None
 
 
-class VersionApiUrlGenerator(object):
-    """Logic for creating URLs and maps of parameters for making API calls"""
-
-    def __init__(self, base, repo):
-        """Set the base Artifactory URL and repository to make API calls against.
-
-        The repository set here will limit the results returned by the API so make
-        sure it reflects the types of requests you'll be making. For example, if you
-        want to get the most recent release version of an artifact, make sure you
-        don't supply an integration artifact repository here.
-
-        :param unicode|str base: Base URL to the Artifactory installation
-        :param unicode|str repo: Artifact repository to generate URLs for
-
-        """
+class _MavenArtifactUrlGenerator(object):
+    def __init__(self, path_factory, base, repo):
+        self._path_factory = path_factory
         self._base = base
         self._repo = repo
 
-    def get_latest_version_url(self, group, artifact):
-        """Get the full URL and required parameters for getting the latest version
-        of an artifact from the Artifactory API.
+    def get_release_url(self, group, artifact, version, descriptor):
+        group_path = group.replace('.', '/')
 
-        :param unicode|str group: Group the artifact belongs to. E.g. "com.example.services"
-        :param unicode|str artifact: Name of the artifact. E.g. "authentication"
-        :return: A tuple of a URL string and a dictionary of parameters to include in the
-            request to the API
-        :rtype: tuple
-        """
-        url = self._base + '/api/search/latestVersion'
-        return url, {'g': group, 'a': artifact, 'repos': self._repo}
+        if descriptor is not None:
+            artifact_name = "{0}-{1}-{2}".format(artifact, version, descriptor)
+        else:
+            artifact_name = "{0}-{1}".format(artifact, version)
 
-    def get_all_version_url(self, group, artifact):
-        """Get the full URL and required parameteres for getting all versions of an
-        artifact from the Artifactory API.
+        url = self._path_factory(self._base + '/' + self._repo)
+        url = url.joinpath(group_path, artifact, version)
 
-        :param unicode|str group: Group the artifact belongs to. E.g. "com.example.services"
-        :param unicode|str artifact: Name of the artifact. E.g. "authentication"
-        :return: A tuple of a URL string and a dictionary of parameters to include in the
-            request to the API
-        :rtype: tuple
-        """
-        url = self._base + '/api/search/versions'
-        return url, {'g': group, 'a': artifact, 'repos': self._repo}
+        return url, url.glob(artifact_name + ".*")
