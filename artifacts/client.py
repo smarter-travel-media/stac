@@ -14,10 +14,6 @@ artifacts.client
 Interface for clients that interact with Artifactory and a implementations of
 it for various repository layouts. This module is the main entry point for users
 of the Artifacts library.
-
-Each client implementation will be based on interacting with a single type of
-repository in Artifactory. Though they will all conform to the :class:`ArtifactoryClient`
-interface, the required information to configure them may differ.
 """
 
 from __future__ import absolute_import
@@ -93,6 +89,12 @@ class ArtifactoryClient(object):
 def new_maven_client(base_url, repo, username=None, password=None):
     """Get a new implementation of :class:`ArtifactoryClient` for use with Maven repository
     layouts, optionally using the provided authentication.
+
+    Most users will simply call this method to get a new Maven client instance. For example:
+
+    >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
+    >>> latest = client.get_latest_release('com.example.users.service')
+    ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war')
 
     :param str base_url: URL to root of the Artifactory installation. Example,
         "https://artifactory.example.com/artifactory".
@@ -189,6 +191,15 @@ class MavenArtifactoryClient(ArtifactoryClient):
         The descriptor may be used to select javadoc jars, sources jars, or any other
         assemblies created as part of the release of the artifact.
 
+        Example usage:
+
+        >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
+        >>> client.get_release('com.example.users.service', '1.4.5', descriptor='sources')
+        ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.4.5/service-1.4.5-sources.war')
+
+        The example above would return a path object for the sources jar of version 1.4.5
+        of some hypothetical user service.
+
         .. seealso::
 
             :meth:`ArtifactoryClient.get_release`
@@ -213,6 +224,15 @@ class MavenArtifactoryClient(ArtifactoryClient):
         The descriptor may be used to select javadoc jars, sources jars, or any other
         assemblies created as part of the release of the artifact.
 
+        Example usage:
+
+        >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
+        >>> client.get_latest_release('com.example.users.service')
+        ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war')
+
+        The example above would return a path object for the war of version 1.6.0 of some
+        hypothetical user service.
+
         .. seealso::
 
             :meth:`ArtifactoryClient.get_latest_release`
@@ -236,6 +256,19 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         The descriptor may be used to select javadoc jars, sources jars, or any other
         assemblies created as part of the release of the artifact.
+
+        Example usage:
+
+        >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
+        >>> client.get_latest_releases('com.example.users.service', limit=3)
+        [
+            ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'),
+            ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.5.4/service-1.5.4.war'),
+            ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.5.3/service-1.5.3.war')
+        ]
+
+        The example above would return a list of path objects for the wars of the three
+        most recent releases of some hypothetical user service.
 
         .. seealso::
 
