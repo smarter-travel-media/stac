@@ -26,6 +26,8 @@ class VersionApiClient(object):
     """Client to get one or multiple versions of a particular artifact.
 
     This client interacts with the Artifactory API over HTTP or HTTPS.
+
+    This class is thread safe.
     """
     _logger = artifacts.util.get_log()
 
@@ -45,10 +47,10 @@ class VersionApiClient(object):
         """Get the version number of the most recent release (non-integration version)
         of a particular group and artifact combination.
 
-        :param unicode|str group: Group of the artifact to get the version of
-        :param unicode|str artifact: Name of the artifact to get the version of
+        :param str group: Group of the artifact to get the version of
+        :param str artifact: Name of the artifact to get the version of
         :return: Version number of the most recent release
-        :rtype: unicode|str
+        :rtype: str
         :raises requests.exceptions.HTTPError: For any non-success HTTP responses
             from the Artifactory API.
         """
@@ -65,8 +67,8 @@ class VersionApiClient(object):
         versions), ordered by the version number, for a particular group and artifact
         combination.
 
-        :param unicode|str group: Group of the artifact to get versions of
-        :param unicode|str artifact: Name of the artifact to get versions of
+        :param str group: Group of the artifact to get versions of
+        :param str artifact: Name of the artifact to get versions of
         :param limit: Fetch only this many of the most recent releases
         :return: Version numbers of the most recent releases
         :rtype: list
@@ -92,14 +94,16 @@ class VersionApiClient(object):
 class AuthenticatedSessionFactory(object):
     """Factory for creating new :class:`requests.Session` instances with
     username/password authentication injected if available.
+
+    This class is thread safe.
     """
 
     def __init__(self, username, password):
         """Set the username and password to use.
 
-        :param unicode|str username: Username to use for authentication with
+        :param str username: Username to use for authentication with
             the Artifactory API. May be ``None``.
-        :param unicode|str password: Password to use for authentication with
+        :param str password: Password to use for authentication with
             the Artifactory API. May be ``None``.
 
         """
@@ -119,7 +123,10 @@ class AuthenticatedSessionFactory(object):
 
 
 class VersionApiUrlGenerator(object):
-    """Logic for creating URLs and maps of parameters for making API calls"""
+    """Logic for creating URLs and maps of parameters for making API calls.
+
+    This class is thread safe.
+    """
 
     def __init__(self, base, repo):
         """Set the base Artifactory URL and repository to make API calls against.
@@ -129,8 +136,8 @@ class VersionApiUrlGenerator(object):
         want to get the most recent release version of an artifact, make sure you
         don't supply an integration artifact repository here.
 
-        :param unicode|str base: Base URL to the Artifactory installation
-        :param unicode|str repo: Artifact repository to generate URLs for
+        :param str base: Base URL to the Artifactory installation
+        :param str repo: Artifact repository to generate URLs for
 
         """
         self._base = base
@@ -140,8 +147,8 @@ class VersionApiUrlGenerator(object):
         """Get the full URL and required parameters for getting the latest version
         of an artifact from the Artifactory API.
 
-        :param unicode|str group: Group the artifact belongs to. E.g. "com.example.services"
-        :param unicode|str artifact: Name of the artifact. E.g. "authentication"
+        :param str group: Group the artifact belongs to. E.g. "com.example.services"
+        :param str artifact: Name of the artifact. E.g. "authentication"
         :return: A tuple of a URL string and a dictionary of parameters to include in the
             request to the API
         :rtype: tuple
@@ -153,8 +160,8 @@ class VersionApiUrlGenerator(object):
         """Get the full URL and required parameteres for getting all versions of an
         artifact from the Artifactory API.
 
-        :param unicode|str group: Group the artifact belongs to. E.g. "com.example.services"
-        :param unicode|str artifact: Name of the artifact. E.g. "authentication"
+        :param str group: Group the artifact belongs to. E.g. "com.example.services"
+        :param str artifact: Name of the artifact. E.g. "authentication"
         :return: A tuple of a URL string and a dictionary of parameters to include in the
             request to the API
         :rtype: tuple

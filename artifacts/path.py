@@ -25,8 +25,8 @@ class AuthenticatedPathFactory(object):
     def __init__(self, username, password):
         """Set the username and password to use when creating new paths
 
-        :param str|unicode username: Username to use for auth
-        :param str|unicode password: Password to use for auth
+        :param str username: Username to use for auth
+        :param str password: Password to use for auth
         """
         self._username = username
         self._password = password
