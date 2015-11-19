@@ -11,7 +11,7 @@
 artifacts.path
 ~~~~~~~~~~~~~~
 
-pathlib like manipulations of Artifactory URLs and paths.
+:mod:`pathlib` like manipulations of Artifactory URLs and paths.
 """
 
 from __future__ import absolute_import

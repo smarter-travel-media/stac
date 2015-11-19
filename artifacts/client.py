@@ -11,7 +11,13 @@
 artifacts.client
 ~~~~~~~~~~~~~~~~
 
-Interface for clients that interact with Artifactory and a Maven implementation.
+Interface for clients that interact with Artifactory and a implementations of
+it for various repository layouts. This module is the main entry point for users
+of the Artifacts library.
+
+Each client implementation will be based on interacting with a single type of
+repository in Artifactory. Though they will all conform to the :class:`ArtifactoryClient`
+interface, the required information to configure them may differ.
 """
 
 from __future__ import absolute_import

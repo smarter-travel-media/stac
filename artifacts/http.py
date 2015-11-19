@@ -11,7 +11,9 @@
 artifacts.http
 ~~~~~~~~~~~~~~
 
-HTTP clients for interacting with the Artifactory JSON API.
+Clients and functionality for interacting with portions of the Artifactory JSON
+API. It is typically not required for users of the Artifacts library to interact
+with this module directly.
 """
 
 from __future__ import absolute_import
