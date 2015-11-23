@@ -16,14 +16,14 @@ Public API of the Artifacts library.
 
 from __future__ import absolute_import
 
-__all__ = [
-    'new_maven_client',
-    'MavenArtifactoryClient',
-    'MavenArtifactoryClientConfig'
-]
-
 from .client import (
     new_maven_client,
     MavenArtifactoryClient,
     MavenArtifactoryClientConfig,
 )
+
+__all__ = [
+    'new_maven_client',
+    'MavenArtifactoryClient',
+    'MavenArtifactoryClientConfig'
+]
