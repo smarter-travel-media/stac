@@ -216,7 +216,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         """
 
         group, artifact = full_name.rsplit('.', 1)
-        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+        base, matches = self._artifact_urls.get_version_url(group, artifact, version, descriptor)
         release = self._get_preferred_result_by_ext(matches)
 
         if release is None:
@@ -249,7 +249,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         """
         group, artifact = full_name.rsplit('.', 1)
         version = self._version_client.get_most_recent_release(group, artifact)
-        base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+        base, matches = self._artifact_urls.get_version_url(group, artifact, version, descriptor)
         release = self._get_preferred_result_by_ext(matches)
 
         if release is None:
@@ -292,7 +292,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         out = []
         for version in versions:
-            base, matches = self._artifact_urls.get_release_url(group, artifact, version, descriptor)
+            base, matches = self._artifact_urls.get_version_url(group, artifact, version, descriptor)
             release = self._get_preferred_result_by_ext(matches)
 
             if release is not None:
@@ -322,7 +322,7 @@ class _MavenArtifactUrlGenerator(object):
         self._base = base
         self._repo = repo
 
-    def get_release_url(self, group, artifact, version, descriptor):
+    def get_version_url(self, group, artifact, version, descriptor):
         group_path = group.replace('.', '/')
 
         if descriptor is not None:
