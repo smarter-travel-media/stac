@@ -36,6 +36,15 @@ class ArtifactoryClient(object):
     artifact (e.g. 'com.example.project.service'). While a Python layout based
     client would use ``full_name`` as unique name in a flat namespace (e.g
     'my-project').
+
+    Artifacts returned by methods in this class will be :class:`pathlib.Path`
+    implementations, specific to Artifactory.
+
+    .. seealso::
+
+        * `ArtifactoryPath <https://github.com/Parallels/artifactory>`_
+        * `Pathlib <https://docs.python.org/3/library/pathlib.html>`_
+
     """
 
     __metaclass__ = ABCMeta
