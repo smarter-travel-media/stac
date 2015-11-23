@@ -80,16 +80,16 @@ class ArtifactoryClient(object):
 
     @abstractmethod
     def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the paths to the most recent releases of the given project, optionally using
-        a descriptor to get a particular variant of the releases (associated sources vs the
-        actual application for example). How the ``full_name`` and ``descriptor`` are used
-        is implementation dependent.
+        """Get the paths to the most recent releases of the given project, most recent releases
+        first, optionally using a descriptor to get a particular variant of the releases
+        (associated sources vs the actual application for example). How the ``full_name`` and
+        ``descriptor`` are used is implementation dependent.
 
         :param str full_name: Full qualified name of the artifacts to get the path of.
         :param str descriptor: Tag to get a particular variant of each release
         :param int limit: Only get the ``limit`` most recent releases.
         :return: Artifactory URL/path to each of the most recent artifacts with the
-            given name
+            given name, ordered with most recent releases first.
         :rtype: list
         :raises ValueError: If limit is negative or zero
         """
@@ -257,8 +257,8 @@ class MavenArtifactoryClient(ArtifactoryClient):
         return release
 
     def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the paths to the most recent releases of the given project, optionally using
-        a descriptor to get a particular variant of the releases.
+        """Get the paths to the most recent releases of the given project, most recent releases
+        first, optionally using a descriptor to get a particular variant of the releases.
 
         The name of the artifact to get a path to should be composed of the group ID
         and artifact ID (in Maven parlance). E.g. "com.example.project.service".
