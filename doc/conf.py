@@ -14,14 +14,13 @@
 
 import sys
 import os
-import shlex
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('.'))
 
 import artifacts
@@ -55,9 +54,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'artifacts'
-copyright = u'2015, SmarterTravel'
-author = u'SmarterTravel'
+from datetime import datetime
+project = u'Artifacts'
+copyright = u'{0}, Smarter Travel'.format(datetime.utcnow().strftime('%Y'))
+author = u'Smarter Travel'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
