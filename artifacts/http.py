@@ -64,15 +64,17 @@ class VersionApiClient(object):
 
         return r.text.strip()
 
-    def get_most_recent_releases(self, group, artifact, limit):
-        """Get a list of the version numbers of the most recent releases (non-integration
-        versions), ordered by the version number, for a particular group and artifact
-        combination.
+    def get_most_recent_versions(self, group, artifact, limit, integration=False):
+        """Get a list of the version numbers of the most recent artifacts (integration
+        or non-integration), ordered by the version number, for a particular group and
+        artifact combination.
 
         :param str group: Group of the artifact to get versions of
         :param str artifact: Name of the artifact to get versions of
-        :param limit: Fetch only this many of the most recent releases
-        :return: Version numbers of the most recent releases
+        :param int limit: Fetch only this many of the most recent releases
+        :param bool integration: If true, fetch only "integration versions", otherwise
+            fetch only non-integration versions.
+        :return: Version numbers of the most recent artifacts
         :rtype: list
         :raises requests.exceptions.HTTPError: For any non-success HTTP responses
             from the Artifactory API.
@@ -88,7 +90,7 @@ class VersionApiClient(object):
         r.raise_for_status()
 
         response = r.json()
-        versions = [item['version'] for item in response['results']]
+        versions = [item['version'] for item in response['results'] if item['integration'] is integration]
         versions.sort(key=distutils.version.LooseVersion, reverse=True)
         return versions[:limit]
 

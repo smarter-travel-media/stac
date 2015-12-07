@@ -17,9 +17,7 @@ of the Artifacts library.
 """
 
 from __future__ import absolute_import
-
 from abc import ABCMeta, abstractmethod
-
 import artifacts.http
 import artifacts.path
 import artifacts.util
@@ -50,9 +48,9 @@ class ArtifactoryClient(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_release(self, full_name, version, descriptor=None):
-        """Get the path to a specific release of the given project, optionally using
-        a descriptor to get a particular variant of the release (associated sources vs
+    def get_version(self, full_name, version, descriptor=None):
+        """Get the path to a specific version of the given project, optionally using
+        a descriptor to get a particular variant of the version (associated sources vs
         the actual application for example). How the ``full_name`` and ``descriptor``
         are used is implementation dependent.
 
@@ -65,9 +63,9 @@ class ArtifactoryClient(object):
         """
 
     @abstractmethod
-    def get_latest_release(self, full_name, descriptor=None):
-        """Get the path to the most recent release of the given project, optionally using
-        a descriptor to get a particular variant of the release (associated sources vs the
+    def get_latest_version(self, full_name, descriptor=None):
+        """Get the path to the most recent version of the given project, optionally using
+        a descriptor to get a particular variant of the version (associated sources vs the
         actual application for example). How the ``full_name`` and ``descriptor`` are used
         is implementation dependent.
 
@@ -79,9 +77,9 @@ class ArtifactoryClient(object):
         """
 
     @abstractmethod
-    def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the paths to the most recent releases of the given project, most recent releases
-        first, optionally using a descriptor to get a particular variant of the releases
+    def get_latest_versions(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
+        """Get the paths to the most recent versions of the given project, most recent versions
+        first, optionally using a descriptor to get a particular variant of the versions
         (associated sources vs the actual application for example). How the ``full_name`` and
         ``descriptor`` are used is implementation dependent.
 
@@ -95,20 +93,22 @@ class ArtifactoryClient(object):
         """
 
 
-def new_maven_client(base_url, repo, username=None, password=None):
+def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=None):
     """Get a new implementation of :class:`ArtifactoryClient` for use with Maven repository
     layouts, optionally using the provided authentication.
 
     Most users will simply call this method to get a new Maven client instance. For example:
 
     >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
-    >>> latest = client.get_latest_release('com.example.users.service')
+    >>> latest = client.get_latest_version('com.example.users.service')
     ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war')
 
     :param str base_url: URL to root of the Artifactory installation. Example,
         "https://artifactory.example.com/artifactory".
     :param str repo: Which repository should searches be done against. Example, "libs-release-local"
         or "libs-snapshot-local".
+    :param bool is_snapshot: Does the repository to perform searches against contain SNAPSHOT
+        (a.k.a. integration) versions? Default is ``False``
     :param str username: Optional username for authentication when making API calls and
         downloading artifacts.
     :param str password: Optional password for authentication when making API calls and
@@ -124,6 +124,7 @@ def new_maven_client(base_url, repo, username=None, password=None):
     config = MavenArtifactoryClientConfig()
     config.base_url = base_url
     config.repo = repo
+    config.is_snapshot = is_snapshot
     config.version_client = version_client
     config.path_factory = path_factory
 
@@ -141,6 +142,11 @@ class MavenArtifactoryClientConfig(object):
         #: Which repository should searches be done against. Example, "libs-release-local"
         #: or "libs-snapshot-local".
         self.repo = None
+
+        #: Does the repository we are searching against contain SNAPSHOT (a.k.a. integration)
+        #: versions and thus require alternate API calls to determine the latest version? Default
+        #: is false
+        self.is_snapshot = False
 
         #: Client for interaction with the Artifactory artifact version APIs that makes use
         #: of any required authentication for the endpoints.
@@ -186,24 +192,25 @@ class MavenArtifactoryClient(ArtifactoryClient):
         #: will.
         self.extensions = ['.war', '.jar', '.zip', '.tgz', '.tbz2', '.tar', '.pom']
 
+        self._is_snapshot = config.is_snapshot
         self._version_client = config.version_client
         self._artifact_urls = _MavenArtifactUrlGenerator(
             config.path_factory, config.base_url, config.repo)
 
-    def get_release(self, full_name, version, descriptor=None):
-        """Get the path to a specific release of the given project, optionally using
-        a descriptor to get a particular variant of the release.
+    def get_version(self, full_name, version, descriptor=None):
+        """Get the path to a specific version of the given project, optionally using
+        a descriptor to get a particular variant of the version (sources, javadocs, etc.).
 
         The name of the artifact to get a path to should be composed of the group ID
         and artifact ID (in Maven parlance). E.g. "com.example.project.service".
 
         The descriptor may be used to select javadoc jars, sources jars, or any other
-        assemblies created as part of the release of the artifact.
+        assemblies created as part of the version of the artifact.
 
         Example usage:
 
         >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
-        >>> client.get_release('com.example.users.service', '1.4.5', descriptor='sources')
+        >>> client.get_version('com.example.users.service', '1.4.5', descriptor='sources')
         ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.4.5/service-1.4.5-sources.war')
 
         The example above would return a path object for the sources jar of version 1.4.5
@@ -223,20 +230,20 @@ class MavenArtifactoryClient(ArtifactoryClient):
             raise RuntimeError("Could not find any artifacts for {0}".format(base))
         return release
 
-    def get_latest_release(self, full_name, descriptor=None):
-        """Get the path to the most recent release of the given project, optionally using
-        a descriptor to get a particular variant of the release.
+    def get_latest_version(self, full_name, descriptor=None):
+        """Get the path to the most recent version of the given project, optionally using
+        a descriptor to get a particular variant of the version (sources, javadocs, etc.).
 
         The name of the artifact to get a path to should be composed of the group ID
         and artifact ID (in Maven parlance). E.g. "com.example.project.service".
 
         The descriptor may be used to select javadoc jars, sources jars, or any other
-        assemblies created as part of the release of the artifact.
+        assemblies created as part of the version of the artifact.
 
         Example usage:
 
         >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
-        >>> client.get_latest_release('com.example.users.service')
+        >>> client.get_latest_version('com.example.users.service')
         ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war')
 
         The example above would return a path object for the war of version 1.6.0 of some
@@ -248,7 +255,12 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         """
         group, artifact = full_name.rsplit('.', 1)
-        version = self._version_client.get_most_recent_release(group, artifact)
+
+        if not self._is_snapshot:
+            version = self._version_client.get_most_recent_release(group, artifact)
+        else:
+            version = self._get_latest_snapshot_version(group, artifact)
+
         base, matches = self._artifact_urls.get_version_url(group, artifact, version, descriptor)
         release = self._get_preferred_result_by_ext(matches)
 
@@ -256,20 +268,24 @@ class MavenArtifactoryClient(ArtifactoryClient):
             raise RuntimeError("Could not find any artifacts for {0}".format(base))
         return release
 
-    def get_latest_releases(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the paths to the most recent releases of the given project, most recent releases
-        first, optionally using a descriptor to get a particular variant of the releases.
+    def _get_latest_snapshot_version(self, group, artifact):
+        pass
+
+    def get_latest_versions(self, full_name, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
+        """Get the paths to the most recent versions of the given project, most recent version
+        first, optionally using a descriptor to get a particular variant of the versions (sources,
+        javadocs, etc.).
 
         The name of the artifact to get a path to should be composed of the group ID
         and artifact ID (in Maven parlance). E.g. "com.example.project.service".
 
         The descriptor may be used to select javadoc jars, sources jars, or any other
-        assemblies created as part of the release of the artifact.
+        assemblies created as part of the version of the artifact.
 
         Example usage:
 
         >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
-        >>> client.get_latest_releases('com.example.users.service', limit=3)
+        >>> client.get_latest_versions('com.example.users.service', limit=3)
         [
             ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'),
             ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.5.4/service-1.5.4.war'),
@@ -277,7 +293,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         ]
 
         The example above would return a list of path objects for the wars of the three
-        most recent releases of some hypothetical user service.
+        most recent versions of some hypothetical user service.
 
         .. seealso::
 
@@ -288,7 +304,8 @@ class MavenArtifactoryClient(ArtifactoryClient):
             raise ValueError("Releases limit must be positive")
 
         group, artifact = full_name.rsplit('.', 1)
-        versions = self._version_client.get_most_recent_releases(group, artifact, limit)
+        versions = self._version_client.get_most_recent_versions(
+            group, artifact, limit, integration=self._is_snapshot)
 
         out = []
         for version in versions:
