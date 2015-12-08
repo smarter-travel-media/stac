@@ -30,8 +30,7 @@ CLASSIFIERS = [
 ]
 
 REQUIREMENTS = [
-    'requests',
-    'artifactory'
+    'requests'
 ]
 
 with codecs.open('README.rst', 'r', 'utf-8') as handle:
