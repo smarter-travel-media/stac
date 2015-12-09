@@ -18,7 +18,8 @@ TODO: Some prose here
     :members:
     :undoc-members:
 
-.. automodule:: artifacts.path
-    :special-members: __init__,__call__,__enter__,__exit__
+.. automodule:: artifacts.exceptions
+    :special-members: __init__
     :members:
     :undoc-members:
+    :show-inheritance:
