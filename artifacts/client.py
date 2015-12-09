@@ -192,8 +192,8 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
-        >>> client.get_version('com.example.users.service', '1.4.5', descriptor='sources')
-        'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.4.5/service-1.4.5-sources.war'
+        >>> client.get_version('com.example.users.service', '1.4.5', 'jar', descriptor='sources')
+        'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.4.5/service-1.4.5-sources.jar'
 
         The example above would return a path object for the sources jar of version 1.4.5
         of some hypothetical user service.
@@ -224,7 +224,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
-        >>> client.get_latest_version('com.example.users.service')
+        >>> client.get_latest_version('com.example.users.service', 'war')
         'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
 
         The example above would return a path object for the war of version 1.6.0 of some
@@ -267,7 +267,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = MavenArtifactoryClient(MavenArtifactoryClientConfig())
-        >>> client.get_latest_versions('com.example.users.service', limit=3)
+        >>> client.get_latest_versions('com.example.users.service', 'war', limit=3)
         [
             'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war',
             'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.5.4/service-1.5.4.war',
