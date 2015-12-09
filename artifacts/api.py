@@ -14,16 +14,26 @@ artifacts.api
 Public API of the Artifacts library.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import as _
 
 from .client import (
     new_maven_client,
+    ArtifactoryClient,
     MavenArtifactoryClient,
     MavenArtifactoryClientConfig,
+)
+from .exceptions import (
+    ArtifactsError,
+    NoReleaseArtifactsError,
+    NoArtifactVersionsError
 )
 
 __all__ = [
     'new_maven_client',
+    'ArtifactoryClient',
     'MavenArtifactoryClient',
-    'MavenArtifactoryClientConfig'
+    'MavenArtifactoryClientConfig',
+    'ArtifactsError',
+    'NoReleaseArtifactsError',
+    'NoArtifactVersionsError'
 ]

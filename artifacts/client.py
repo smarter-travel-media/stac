@@ -142,7 +142,7 @@ class MavenArtifactoryClientConfig(object):
         #: is false
         self.is_snapshot = False
 
-        #:
+        #: Client for interacting with the Artifactory HTTP API
         self.http_client = None
 
 
