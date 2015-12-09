@@ -16,13 +16,20 @@ Exceptions raised by the Artifacts library.
 
 from __future__ import print_function, division
 
+__all__ = [
+    'ArtifactsError',
+    'ArtifactoryApiError',
+    'NoReleaseArtifactsError',
+    'NoArtifactVersionsError'
+]
+
 
 class ArtifactsError(RuntimeError):
-    """Base for all exceptions raised by the Artifacts library"""
+    """Base for exceptions raised by the Artifacts library"""
 
 
 class ArtifactoryApiError(ArtifactsError):
-    """Root for errors interacting with the Artifactory REST API"""
+    """Base for errors interacting with the Artifactory REST API"""
 
     def __init__(self, *args, **kwargs):
         #: HTTP status code returned by the Artifactory REST API
