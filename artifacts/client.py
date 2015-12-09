@@ -95,8 +95,8 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     Most users will simply call this method to get a new Maven client instance. For example:
 
     >>> client = new_maven_client('https://artifactory.example.com/artifactory', 'libs-release')
-    >>> latest = client.get_latest_version('com.example.users.service')
-    ArtifactoryPath('https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war')
+    >>> latest = client.get_latest_version('com.example.users.service', 'war')
+    'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
 
     :param str base_url: URL to root of the Artifactory installation. Example,
         "https://artifactory.example.com/artifactory".
@@ -148,13 +148,6 @@ class MavenArtifactoryClientConfig(object):
 
 class MavenArtifactoryClient(ArtifactoryClient):
     """Implementation of a :class:`ArtifactoryClient` for working with Maven repository layouts.
-
-    When determining which artifact to download, the artifacts will be prioritized by extension,
-    with those appearing first in :attr:`extensions` taking priority over those appearing later.
-
-    For example, the project 'my-service', may publish '.jar' files as well as '.pom' files. In
-    this case the '.jar' file is probably the one the caller wants (since this client is aimed
-    at deploy related use cases).
 
     .. note::
 
