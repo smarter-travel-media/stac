@@ -18,6 +18,7 @@ of the Artifacts library.
 
 from __future__ import absolute_import
 
+import artifacts.exceptions
 import artifacts.http
 import artifacts.util
 import requests
@@ -52,7 +53,6 @@ class ArtifactoryClient(object):
         :param str descriptor: Tag to get a particular variant of a release.
         :return: URL to the artifact with given name and version
         :rtype: str
-        :raises RuntimeError: If no matching artifact could be found
         """
 
     @abstractmethod
@@ -67,7 +67,8 @@ class ArtifactoryClient(object):
         :param str packaging: Type of packaging / file format used for the artifact
         :return: URL to the artifact with given name
         :rtype: str
-        :raises RuntimeError: If no matching artifact could be found
+        :raises artifacts.exceptions.NoMatchingVersionsError: If no matching artifact could
+            be found
         """
 
     @abstractmethod
@@ -85,6 +86,8 @@ class ArtifactoryClient(object):
             with most recent releases first.
         :rtype: list
         :raises ValueError: If limit is negative or zero
+        :raises artifacts.exceptions.NoMatchingVersionsError: If no matching artifact could be
+            found
         """
 
 
@@ -229,10 +232,15 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         """
         group, artifact = full_name.rsplit('.', 1)
-        if not self._is_snapshot:
-            url = self._get_latest_release_version(group, artifact, packaging, descriptor)
-        else:
-            url = self._get_latest_snapshot_version(group, artifact, packaging, descriptor)
+        try:
+            if not self._is_snapshot:
+                url = self._get_latest_release_version(group, artifact, packaging, descriptor)
+            else:
+                url = self._get_latest_snapshot_version(group, artifact, packaging, descriptor)
+        except requests.HTTPError as e:
+            if e.request is not None and e.request.status_code == requests.codes.not_found:
+                raise self._get_wrapped_exception(group, artifact, cause=e)
+            raise
         return url
 
     def _get_latest_release_version(self, group, artifact, packaging, descriptor):
@@ -242,6 +250,17 @@ class MavenArtifactoryClient(ArtifactoryClient):
     def _get_latest_snapshot_version(self, group, artifact, packaging, descriptor):
         snapshot_version = self._http_client.get_most_recent_versions(group, artifact, 1, integration=True)[0]
         return self._artifact_urls.get_version_url(group, artifact, packaging, snapshot_version, descriptor)
+
+    def _get_wrapped_exception(self, group, artifact, cause=None):
+        version_type = 'integration' if self._is_snapshot else 'non-integration'
+        return artifacts.exceptions.NoMatchingVersionsError(
+            "No {version_type} versions of {group}.{name} could be found. It might be the "
+            "case that there have not been any {version_type} deployments done yet.".format(
+                version_type=version_type,
+                group=group,
+                name=artifact
+            ), cause=cause
+        )
 
     def get_latest_versions(self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
         """Get the URLs to the most recent versions of the given project, most recent version
@@ -279,12 +298,21 @@ class MavenArtifactoryClient(ArtifactoryClient):
             raise ValueError("Releases limit must be positive")
 
         group, artifact = full_name.rsplit('.', 1)
-        versions = self._http_client.get_most_recent_versions(
-            group, artifact, limit, integration=self._is_snapshot)
+
+        try:
+            versions = self._http_client.get_most_recent_versions(
+                group, artifact, limit, integration=self._is_snapshot)
+        except requests.HTTPError as e:
+            if e.request is not None and e.request.status_code == requests.codes.not_found:
+                raise self._get_wrapped_exception(group, artifact, cause=e)
+            raise
 
         out = []
         for version in versions:
             out.append(self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor))
+
+        if not out:
+            raise self._get_wrapped_exception(group, artifact)
         return out
 
 

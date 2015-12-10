@@ -9,7 +9,8 @@ import pytest
 
 @pytest.fixture
 def http_client():
-    return mock.Mock()
+    from artifacts.http import VersionApiClient
+    return mock.Mock(spec=VersionApiClient)
 
 
 class TestMavenArtifactoryClient(object):

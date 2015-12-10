@@ -19,9 +19,8 @@ with this module directly.
 from __future__ import absolute_import
 
 import distutils.version
-import requests
-import artifacts.exceptions
 
+import artifacts.exceptions
 import artifacts.util
 
 
@@ -55,25 +54,14 @@ class VersionApiClient(object):
         :param str artifact: Name of the artifact to get the version of
         :return: Version number of the most recent release
         :rtype: str
-        :raises artifacts.exceptions.NoReleaseArtifactsError: If there aren't any 'release'
-            versions of the given artifact available.
         :raises requests.exceptions.HTTPError: For any non-success HTTP responses
-            from the Artifactory API besides HTTP 404, handled by the above exception.
+            from the Artifactory API.
         """
         url = self._base_url + '/api/search/latestVersion'
         params = {'g': group, 'a': artifact, 'repos': self._repo}
         self._logger.debug("Using latest version API at %s - params %s", url, params)
 
         r = self._session.get(url, params=params)
-
-        # Specifically handle the case when there aren't any releases found
-        if r.status_code == requests.codes.not_found:
-            raise artifacts.exceptions.NoReleaseArtifactsError(
-                "Unable to find the most recent release for {group}.{name}; Maybe there "
-                "haven't been any releases of this project yet? API URL: {url}".format(
-                    group=group, name=artifact, url=r.url), code=r.status_code, url=r.url)
-
-        # Any other errors we just let them bubble up to be dealt with by the caller
         r.raise_for_status()
         return r.text.strip()
 
@@ -89,10 +77,8 @@ class VersionApiClient(object):
             fetch only non-integration versions.
         :return: Version numbers of the most recent artifacts
         :rtype: list
-        :raises artifacts.exceptions.NoArtifactVersionsError: If there aren't any versions
-            of the given artifact available.
         :raises requests.exceptions.HTTPError: For any non-success HTTP responses
-            from the Artifactory API besides HTTP 404, handled by the above exception.
+            from the Artifactory API.
         :raises ValueError: If limit is 0 or negative.
         """
         if limit < 1:
@@ -103,29 +89,9 @@ class VersionApiClient(object):
         self._logger.debug("Using all version API at %s - params %s", url, params)
 
         r = self._session.get(url, params=params)
-
-        # Specifically handle the case where there aren't any versions of an artifact
-        if r.status_code == requests.codes.not_found:
-            raise artifacts.exceptions.NoArtifactVersionsError(
-                "Unable to find any versions for {group}.{name}; Maybe there "
-                "haven't been any release or integration versions of this project "
-                "yet? API URL: {url}".format(group=group, name=artifact, url=r.url),
-                code=r.status_code, url=r.url)
-
-        # Any other errors we just let them bubble up to be dealt with by the caller
         r.raise_for_status()
 
         response = r.json()
         versions = [item['version'] for item in response['results'] if item['integration'] is integration]
-
-        if not versions:
-            version_type = 'integration' if integration else 'non-integration'
-            raise artifacts.exceptions.NoArtifactVersionsError(
-                "Unable to find any {version_type} versions for {group}.{name}; Maybe "
-                "there haven't been any {version_type} versions of this project created "
-                "yet? API URL: {url}".format(
-                    version_type=version_type, group=group, name=artifact, url=r.url),
-                code=r.status_code, url=r.url)
-
         versions.sort(key=distutils.version.LooseVersion, reverse=True)
         return versions[:limit]

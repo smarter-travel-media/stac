@@ -24,8 +24,7 @@ from .client import (
 )
 from .exceptions import (
     ArtifactsError,
-    NoReleaseArtifactsError,
-    NoArtifactVersionsError
+    NoMatchingVersionsError
 )
 
 __all__ = [
@@ -34,6 +33,5 @@ __all__ = [
     'MavenArtifactoryClient',
     'MavenArtifactoryClientConfig',
     'ArtifactsError',
-    'NoReleaseArtifactsError',
-    'NoArtifactVersionsError'
+    'NoMatchingVersionsError'
 ]

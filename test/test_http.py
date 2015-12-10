@@ -5,30 +5,32 @@
 
 import mock
 import pytest
+import requests
 
 
 @pytest.fixture
 def session():
-    return mock.Mock()
+    return mock.Mock(spec=requests.Session)
 
 
 @pytest.fixture
 def response():
-    return mock.Mock()
+    return mock.Mock(spec=requests.Response)
 
 
 class TestVersionApiClient(object):
     def test_get_most_recent_release_no_results(self, session, response):
-        from artifacts.exceptions import NoReleaseArtifactsError
         from artifacts.http import VersionApiClient
 
         response.status_code = 404
         response.url = 'https://www.example.com/artifactory/api/search/latestVersion'
+        error = requests.HTTPError("Something bad", request=requests.Request(), response=response)
+        response.raise_for_status.side_effect = error
         session.get.return_value = response
 
         http_client = VersionApiClient(session, 'https://www.example.com/artifactory', 'libs-release')
 
-        with pytest.raises(NoReleaseArtifactsError):
+        with pytest.raises(requests.HTTPError):
             http_client.get_most_recent_release('com.example.services', 'mail')
 
     def test_get_most_recent_release(self, session, response):
@@ -51,20 +53,20 @@ class TestVersionApiClient(object):
             http_client.get_most_recent_versions('com.example.services', 'mail', 0)
 
     def test_get_most_recent_versions_no_results(self, session, response):
-        from artifacts.exceptions import NoArtifactVersionsError
         from artifacts.http import VersionApiClient
 
         response.status_code = 404
         response.url = 'https://www.example.com/artifactory/api/search/versions'
+        error = requests.HTTPError("Something bad", request=requests.Request(), response=response)
+        response.raise_for_status.side_effect = error
         session.get.return_value = response
 
         http_client = VersionApiClient(session, 'https://www.example.com/artifactory', 'libs-release')
 
-        with pytest.raises(NoArtifactVersionsError):
+        with pytest.raises(requests.HTTPError):
             http_client.get_most_recent_versions('com.example.services', 'mail', 3)
 
     def test_get_most_recent_versions_no_integration_results(self, session, response):
-        from artifacts.exceptions import NoArtifactVersionsError
         from artifacts.http import VersionApiClient
 
         response.status_code = 200
@@ -89,12 +91,10 @@ class TestVersionApiClient(object):
         session.get.return_value = response
 
         http_client = VersionApiClient(session, 'https://www.example.com/artifactory', 'libs-release')
-
-        with pytest.raises(NoArtifactVersionsError):
-            http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=True)
+        versions = http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=True)
+        assert 0 == len(versions)
 
     def test_get_most_recent_versions_no_non_integration_results(self, session, response):
-        from artifacts.exceptions import NoArtifactVersionsError
         from artifacts.http import VersionApiClient
 
         response.status_code = 200
@@ -119,9 +119,8 @@ class TestVersionApiClient(object):
         session.get.return_value = response
 
         http_client = VersionApiClient(session, 'https://www.example.com/artifactory', 'libs-snapshot')
-
-        with pytest.raises(NoArtifactVersionsError):
-            http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=False)
+        versions = http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=False)
+        assert 0 == len(versions)
 
     def test_get_most_recent_versions(self, session, response):
         from artifacts.http import VersionApiClient
