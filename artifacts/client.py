@@ -41,7 +41,7 @@ class ArtifactoryClient(object):
 
     @abstractmethod
     def get_version(self, full_name, packaging, version, descriptor=None):
-        """Get the path to a specific version of the given project, optionally using
+        """Get the URL to a specific version of the given project, optionally using
         a descriptor to get a particular variant of the version (associated sources vs
         the actual application for example). How the ``full_name`` and ``descriptor``
         are used is implementation dependent.
@@ -57,7 +57,7 @@ class ArtifactoryClient(object):
 
     @abstractmethod
     def get_latest_version(self, full_name, packaging, descriptor=None):
-        """Get the path to the most recent version of the given project, optionally using
+        """Get the URL to the most recent version of the given project, optionally using
         a descriptor to get a particular variant of the version (associated sources vs the
         actual application for example). How the ``full_name`` and ``descriptor`` are used
         is implementation dependent.
@@ -72,7 +72,7 @@ class ArtifactoryClient(object):
 
     @abstractmethod
     def get_latest_versions(self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the paths to the most recent versions of the given project, most recent versions
+        """Get the URLs to the most recent versions of the given project, most recent versions
         first, optionally using a descriptor to get a particular variant of the versions
         (associated sources vs the actual application for example). How the ``full_name`` and
         ``descriptor`` are used is implementation dependent.
@@ -267,8 +267,8 @@ class MavenArtifactoryClient(ArtifactoryClient):
             'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.5.3/service-1.5.3.war'
         ]
 
-        The example above would return a list of path objects for the wars of the three
-        most recent versions of some hypothetical user service.
+        The example above would return a list of URLs for the wars of the three most recent
+        versions of some hypothetical user service.
 
         .. seealso::
 
