@@ -33,3 +33,7 @@ class NoMatchingVersionsError(RuntimeError):
         #: Originating exception, likely coming from making a request to the Artifactory
         #: API using the requests library.
         self.cause = kwargs.pop("cause", None)
+        super(NoMatchingVersionsError, self).__init__(*args, **kwargs)
+
+    def __str__(self):
+        return "{0} {1}".format(super(NoMatchingVersionsError, self).__str__(), self.cause)

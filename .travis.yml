@@ -14,4 +14,4 @@ branches:
 install:
   - "pip install tox"
 
-script: tox test
+script: tox test/unit
