@@ -5,6 +5,7 @@
 
 import mock
 import pytest
+import requests
 
 
 @pytest.fixture
@@ -45,6 +46,27 @@ class TestMavenArtifactoryClient(object):
         assert ('https://www.example.com/artifactory/libs-snapshot/' +
                 'com/example/users/service/1.3.0-SNAPSHOT/service-1.3.0-SNAPSHOT.jar') == url
 
+    def test_get_latest_version_snapshot_no_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        request = mock.Mock(spec=requests.Request)
+        response = mock.Mock(spec=requests.Response)
+        response.status_code = 404
+        error = requests.HTTPError("Something bad", request=request, response=response)
+        http_client.get_most_recent_versions.side_effect = error
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-snapshot'
+        config.is_snapshot = True
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_version('com.example.users.service', 'war')
+
     def test_get_latest_version_release(self, http_client):
         from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
 
@@ -60,6 +82,27 @@ class TestMavenArtifactoryClient(object):
         url = maven_client.get_latest_version('com.example.users.service', 'jar')
         assert ('https://www.example.com/artifactory/libs-release/' +
                 'com/example/users/service/4.13.4/service-4.13.4.jar') == url
+
+    def test_get_latest_version_release_no_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        request = mock.Mock(spec=requests.Request)
+        response = mock.Mock(spec=requests.Response)
+        response.status_code = 404
+        error = requests.HTTPError("Something bad", request=request, response=response)
+        http_client.get_most_recent_release.side_effect = error
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-release'
+        config.is_snapshot = False
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_version('com.example.users.service', 'war')
 
     def test_get_latest_versions_snapshot(self, http_client):
         from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -83,6 +126,44 @@ class TestMavenArtifactoryClient(object):
 
         assert expected == urls
 
+    def test_get_latest_versions_snapshot_no_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        request = mock.Mock(spec=requests.Request)
+        response = mock.Mock(spec=requests.Response)
+        response.status_code = 404
+        error = requests.HTTPError("Something bad", request=request, response=response)
+        http_client.get_most_recent_versions.side_effect = error
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-snapshot'
+        config.is_snapshot = True
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_versions('com.example.users.service', 'war')
+
+    def test_get_latest_versions_snapshot_only_release_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        http_client.get_most_recent_versions.return_value = []
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-snapshot'
+        config.is_snapshot = True
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_versions('com.example.users.service', 'war')
+
     def test_get_latest_versions_release(self, http_client):
         from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
 
@@ -103,6 +184,44 @@ class TestMavenArtifactoryClient(object):
         ]
 
         assert expected == urls
+
+    def test_get_latest_versions_release_no_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        request = mock.Mock(spec=requests.Request)
+        response = mock.Mock(spec=requests.Response)
+        response.status_code = 404
+        error = requests.HTTPError("Something bad", request=request, response=response)
+        http_client.get_most_recent_versions.side_effect = error
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-release'
+        config.is_snapshot = False
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_versions('com.example.users.service', 'war')
+
+    def test_get_latest_versions_release_only_snapshot_results(self, http_client):
+        from artifacts.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from artifacts.exceptions import NoMatchingVersionsError
+
+        http_client.get_most_recent_versions.return_value = []
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-release'
+        config.is_snapshot = False
+        config.http_client = http_client
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_versions('com.example.users.service', 'war')
 
 
 class TestMavenArtifactUrlGenerator(object):

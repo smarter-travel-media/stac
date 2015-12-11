@@ -238,7 +238,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
             else:
                 url = self._get_latest_snapshot_version(group, artifact, packaging, descriptor)
         except requests.HTTPError as e:
-            if e.request is not None and e.request.status_code == requests.codes.not_found:
+            if e.response is not None and e.response.status_code == requests.codes.not_found:
                 raise self._get_wrapped_exception(group, artifact, cause=e)
             raise
         return url
@@ -303,7 +303,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
             versions = self._http_client.get_most_recent_versions(
                 group, artifact, limit, integration=self._is_snapshot)
         except requests.HTTPError as e:
-            if e.request is not None and e.request.status_code == requests.codes.not_found:
+            if e.response is not None and e.response.status_code == requests.codes.not_found:
                 raise self._get_wrapped_exception(group, artifact, cause=e)
             raise
 
