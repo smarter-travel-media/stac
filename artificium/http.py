@@ -12,7 +12,7 @@ artificium.http
 ~~~~~~~~~~~~~~~
 
 Clients and functionality for interacting with portions of the Artifactory JSON
-API. It is typically not required for users of the Artifacts library to interact
+API. It is typically not required for users of the Artificium library to interact
 with this module directly.
 """
 

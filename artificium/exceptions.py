@@ -11,7 +11,7 @@
 artificium.exceptions
 ~~~~~~~~~~~~~~~~~~~~~
 
-Exceptions raised by the Artifacts library.
+Exceptions raised by the Artificium library.
 """
 
 from __future__ import print_function, division

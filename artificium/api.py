@@ -11,7 +11,7 @@
 artificium.api
 ~~~~~~~~~~~~~~
 
-Public API of the Artifacts library.
+Public API of the Artificium library.
 """
 
 from __future__ import absolute_import as _

@@ -11,7 +11,7 @@
 artificium.util
 ~~~~~~~~~~~~~~~
 
-Miscellaneous utility methods for the Artifacts library.
+Miscellaneous utility methods for the Artificium library.
 """
 
 from __future__ import absolute_import

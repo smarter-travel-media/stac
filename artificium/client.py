@@ -13,7 +13,7 @@ artificium.client
 
 Interface for clients that interact with Artifactory and a implementations of
 it for various repository layouts. This module is the main entry point for users
-of the Artifacts library.
+of the Artificium library.
 """
 
 from __future__ import absolute_import
