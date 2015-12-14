@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artificium - Artifactory Search Client
+# Stac - Smarter Travel Artifactory Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,11 +8,11 @@
 #
 
 """
-artificium.http
-~~~~~~~~~~~~~~~
+stac.http
+~~~~~~~~~
 
 Clients and functionality for interacting with portions of the Artifactory JSON
-API. It is typically not required for users of the Artificium library to interact
+API. It is typically not required for users of the Stac library to interact
 with this module directly.
 """
 
@@ -20,8 +20,8 @@ from __future__ import absolute_import
 
 import distutils.version
 
-import artificium.exceptions
-import artificium.util
+import stac.exceptions
+import stac.util
 
 
 class VersionApiClient(object):
@@ -31,7 +31,7 @@ class VersionApiClient(object):
 
     This class is thread safe.
     """
-    _logger = artificium.util.get_log()
+    _logger = stac.util.get_log()
 
     def __init__(self, session, base_url, repo):
         """Set the factory for requests session and factory for API urls.

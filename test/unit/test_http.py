@@ -20,7 +20,7 @@ def response():
 
 class TestVersionApiClient(object):
     def test_get_most_recent_release_no_results(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 404
         response.url = 'https://www.example.com/artifactory/api/search/latestVersion'
@@ -34,7 +34,7 @@ class TestVersionApiClient(object):
             http_client.get_most_recent_release('com.example.services', 'mail')
 
     def test_get_most_recent_release(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 200
         response.text = '4.34.1\n'
@@ -46,14 +46,14 @@ class TestVersionApiClient(object):
         assert '4.34.1' == version
 
     def test_get_most_recent_versions_invalid_limit(self, session):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
         http_client = VersionApiClient(session, 'https://www.example.com/artifactory', 'libs-release')
 
         with pytest.raises(ValueError):
             http_client.get_most_recent_versions('com.example.services', 'mail', 0)
 
     def test_get_most_recent_versions_no_results(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 404
         response.url = 'https://www.example.com/artifactory/api/search/versions'
@@ -67,7 +67,7 @@ class TestVersionApiClient(object):
             http_client.get_most_recent_versions('com.example.services', 'mail', 3)
 
     def test_get_most_recent_versions_no_integration_results(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 200
         response.url = 'https://www.example.com/artifactory/api/search/versions'
@@ -95,7 +95,7 @@ class TestVersionApiClient(object):
         assert 0 == len(versions)
 
     def test_get_most_recent_versions_no_non_integration_results(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 200
         response.url = 'https://www.example.com/artifactory/api/search/versions'
@@ -123,7 +123,7 @@ class TestVersionApiClient(object):
         assert 0 == len(versions)
 
     def test_get_most_recent_versions(self, session, response):
-        from artificium.http import VersionApiClient
+        from stac.http import VersionApiClient
 
         response.status_code = 200
         response.url = 'https://www.example.com/artifactory/api/search/versions'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artificium - Artifactory Search Client
+# Stac - Smarter Travel Artifactory Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,14 +8,13 @@
 #
 
 """
-artificium.api
-~~~~~~~~~~~~~~
+stac.api
+~~~~~~~~
 
-Public API of the Artificium library.
+Public API of the Stac library.
 """
 
 from __future__ import absolute_import as _
-
 from .client import (
     new_maven_client,
     ArtifactoryClient,
@@ -23,8 +22,8 @@ from .client import (
     MavenArtifactoryClientConfig,
 )
 from .exceptions import (
-    ArtifactsError,
-    NoMatchingVersionsError
+    StacError,
+    StacNoMatchingVersionsError
 )
 
 __all__ = [
@@ -32,6 +31,6 @@ __all__ = [
     'ArtifactoryClient',
     'MavenArtifactoryClient',
     'MavenArtifactoryClientConfig',
-    'ArtifactsError',
-    'NoMatchingVersionsError'
+    'StacError',
+    'StacNoMatchingVersionsError'
 ]

@@ -11,7 +11,7 @@ def test_get_latest_snapshot_version():
     jars for an ST project that we've uploaded to the OSS instance of Artifactory that JFrog
     runs.
     """
-    from artificium.api import new_maven_client
+    from stac.api import new_maven_client
     client = new_maven_client(ARTIFACTORY_INSTANCE, SNAPSHOT_REPO, is_snapshot=True)
 
     latest_jar = client.get_latest_version('com.smartertravel.metrics.aop.st-metrics', 'jar')
@@ -34,7 +34,7 @@ def test_get_latest_snapshot_versions():
     jars for an ST project that we've uploaded to the OSS instance of Artifactory that JFrog
     runs.
     """
-    from artificium.api import new_maven_client
+    from stac.api import new_maven_client
     client = new_maven_client(ARTIFACTORY_INSTANCE, SNAPSHOT_REPO, is_snapshot=True)
 
     latest_jars = client.get_latest_versions('com.smartertravel.metrics.aop.st-metrics', 'jar')

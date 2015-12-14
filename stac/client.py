@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artificium - Artifactory Search Client
+# Stac - Smarter Travel Artifactory Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,19 +8,19 @@
 #
 
 """
-artificium.client
-~~~~~~~~~~~~~~~~~
+stac.client
+~~~~~~~~~~~
 
 Interface for clients that interact with Artifactory and a implementations of
 it for various repository layouts. This module is the main entry point for users
-of the Artificium library.
+of the Stac library.
 """
 
 from __future__ import absolute_import
 
-import artificium.exceptions
-import artificium.http
-import artificium.util
+import stac.exceptions
+import stac.http
+import stac.util
 import requests
 from abc import ABCMeta, abstractmethod
 
@@ -123,7 +123,7 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     config.base_url = base_url
     config.repo = repo
     config.is_snapshot = is_snapshot
-    config.http_client = artificium.http.VersionApiClient(session, base_url, repo)
+    config.http_client = stac.http.VersionApiClient(session, base_url, repo)
 
     return MavenArtifactoryClient(config)
 
@@ -161,7 +161,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
     This class is thread safe.
     """
 
-    _logger = artificium.util.get_log()
+    _logger = stac.util.get_log()
 
     def __init__(self, config):
         """Create a new Maven client instance based on the supplied configuration.
@@ -253,7 +253,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
         version_type = 'integration' if self._is_snapshot else 'non-integration'
-        return artificium.exceptions.NoMatchingVersionsError(
+        return stac.exceptions.StacNoMatchingVersionsError(
             "No {version_type} versions of {group}.{name} could be found. It might be the "
             "case that there have not been any {version_type} deployments done yet.".format(
                 version_type=version_type,

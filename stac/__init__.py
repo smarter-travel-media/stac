@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artificium - Artifactory Search Client
+# Stac - Smarter Travel Artifactory Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,10 +8,10 @@
 #
 
 """
-artificium
-~~~~~~~~~~
+stac
+~~~~
 
-Artifactory search client.
+Smarter Travel Artifactory Client.
 """
 
 __version__ = '0.1.0'

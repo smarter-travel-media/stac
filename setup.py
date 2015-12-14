@@ -8,13 +8,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import artificium
+import stac
 
 AUTHOR = 'Smarter Travel'
-VERSION = artificium.__version__
+VERSION = stac.__version__
 EMAIL = ''
 DESCRIPTION = ''
-URL = 'https://github.com/smarter-travel-media/artifacts'
+URL = 'https://github.com/smarter-travel-media/stac'
 LICENSE = 'MIT'
 CLASSIFIERS = [
     "Development Status :: 2 - Pre-Alpha",
@@ -37,7 +37,7 @@ with codecs.open('README.rst', 'r', 'utf-8') as handle:
     LONG_DESCRIPTION = handle.read()
 
 setup(
-    name='artificium',
+    name='stac',
     version=VERSION,
     author=AUTHOR,
     description=DESCRIPTION,
@@ -48,4 +48,4 @@ setup(
     url=URL,
     install_requires=REQUIREMENTS,
     zip_safe=True,
-    packages=['artificium'])
+    packages=['stac'])
