@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artifacts - Artifactory Search Client
+# Artificium - Artifactory Search Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,8 +8,8 @@
 #
 
 """
-artifacts.http
-~~~~~~~~~~~~~~
+artificium.http
+~~~~~~~~~~~~~~~
 
 Clients and functionality for interacting with portions of the Artifactory JSON
 API. It is typically not required for users of the Artifacts library to interact
@@ -20,8 +20,8 @@ from __future__ import absolute_import
 
 import distutils.version
 
-import artifacts.exceptions
-import artifacts.util
+import artificium.exceptions
+import artificium.util
 
 
 class VersionApiClient(object):
@@ -31,7 +31,7 @@ class VersionApiClient(object):
 
     This class is thread safe.
     """
-    _logger = artifacts.util.get_log()
+    _logger = artificium.util.get_log()
 
     def __init__(self, session, base_url, repo):
         """Set the factory for requests session and factory for API urls.

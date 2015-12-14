@@ -8,10 +8,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import artifacts
+import artificium
 
 AUTHOR = 'Smarter Travel'
-VERSION = artifacts.__version__
+VERSION = artificium.__version__
 EMAIL = ''
 DESCRIPTION = ''
 URL = 'https://github.com/smarter-travel-media/artifacts'
@@ -37,7 +37,7 @@ with codecs.open('README.rst', 'r', 'utf-8') as handle:
     LONG_DESCRIPTION = handle.read()
 
 setup(
-    name='artifacts',
+    name='artificium',
     version=VERSION,
     author=AUTHOR,
     description=DESCRIPTION,
@@ -48,4 +48,4 @@ setup(
     url=URL,
     install_requires=REQUIREMENTS,
     zip_safe=True,
-    packages=['artifacts'])
+    packages=['artificium'])

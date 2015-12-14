@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Artifacts - Artifactory Search Client
+# Artificium - Artifactory Search Client
 #
 # Copyright 2015 Smarter Travel
 #
@@ -8,8 +8,8 @@
 #
 
 """
-artifacts.api
-~~~~~~~~~~~~~
+artificium.api
+~~~~~~~~~~~~~~
 
 Public API of the Artifacts library.
 """

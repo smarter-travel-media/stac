@@ -1,5 +1,5 @@
-Artifacts - Artifactory Search Client
--------------------------------------
+Artificium - Artifactory Search Client
+--------------------------------------
 
 
 **WARNING - This is super pre-alpha-barely-works software right now**
