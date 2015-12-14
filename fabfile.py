@@ -11,6 +11,8 @@ def clean():
     local('rm -rf wheelhouse')
     local('rm -rf dist')
     local('rm -rf build')
+    local('rm -rf test/unit/__pycache__')
+    local('rm -rf test/integration/__pycache__')
 
     with lcd('doc'):
         local('make clean')
