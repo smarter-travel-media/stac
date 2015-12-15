@@ -11,9 +11,9 @@
 stac.client
 ~~~~~~~~~~~
 
-Interface for clients that interact with Artifactory and a implementations of
-it for various repository layouts. This module is the main entry point for users
-of the Stac library.
+Interface for clients that interact with Artifactory and implementations of it
+for various repository layouts. This module is the main entry point for users of
+the Stac library.
 """
 
 from __future__ import absolute_import
@@ -67,7 +67,7 @@ class ArtifactoryClient(object):
         :param str packaging: Type of packaging / file format used for the artifact
         :return: URL to the artifact with given name
         :rtype: str
-        :raises artifacts.exceptions.NoMatchingVersionsError: If no matching artifact could
+        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could
             be found
         """
 
@@ -86,7 +86,7 @@ class ArtifactoryClient(object):
             with most recent releases first.
         :rtype: list
         :raises ValueError: If limit is negative or zero
-        :raises artifacts.exceptions.NoMatchingVersionsError: If no matching artifact could be
+        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could be
             found
         """
 
