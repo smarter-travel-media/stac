@@ -123,7 +123,7 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     config.base_url = base_url
     config.repo = repo
     config.is_snapshot = is_snapshot
-    config.http_client = stac.http.VersionApiClient(session, base_url, repo)
+    config.dao = stac.http.VersionApiDao(session, base_url, repo)
 
     return MavenArtifactoryClient(config)
 
@@ -145,8 +145,8 @@ class MavenArtifactoryClientConfig(object):
         #: is false
         self.is_snapshot = False
 
-        #: Client for interacting with the Artifactory HTTP API
-        self.http_client = None
+        #: DAO for interacting with the Artifactory HTTP API
+        self.dao = None
 
 
 class MavenArtifactoryClient(ArtifactoryClient):
@@ -169,7 +169,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         :param MavenArtifactoryClientConfig config: Required configuration for this client
         """
         self._is_snapshot = config.is_snapshot
-        self._http_client = config.http_client
+        self._dao = config.dao
         self._artifact_urls = _MavenArtifactUrlGenerator(config.base_url, config.repo)
 
     def get_version(self, full_name, packaging, version, descriptor=None):
@@ -244,11 +244,11 @@ class MavenArtifactoryClient(ArtifactoryClient):
         return url
 
     def _get_latest_release_version(self, group, artifact, packaging, descriptor):
-        release_version = self._http_client.get_most_recent_release(group, artifact)
+        release_version = self._dao.get_most_recent_release(group, artifact)
         return self._artifact_urls.get_version_url(group, artifact, packaging, release_version, descriptor)
 
     def _get_latest_snapshot_version(self, group, artifact, packaging, descriptor):
-        snapshot_version = self._http_client.get_most_recent_versions(group, artifact, 1, integration=True)[0]
+        snapshot_version = self._dao.get_most_recent_versions(group, artifact, 1, integration=True)[0]
         return self._artifact_urls.get_version_url(group, artifact, packaging, snapshot_version, descriptor)
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
@@ -300,7 +300,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         group, artifact = full_name.rsplit('.', 1)
 
         try:
-            versions = self._http_client.get_most_recent_versions(
+            versions = self._dao.get_most_recent_versions(
                 group, artifact, limit, integration=self._is_snapshot)
         except requests.HTTPError as e:
             if e.response is not None and e.response.status_code == requests.codes.not_found:

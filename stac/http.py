@@ -24,10 +24,10 @@ import stac.exceptions
 import stac.util
 
 
-class VersionApiClient(object):
-    """Client to get one or multiple versions of a particular artifact.
+class VersionApiDao(object):
+    """HTTP DAO to get one or multiple versions of a particular artifact.
 
-    This client interacts with the Artifactory API over HTTP or HTTPS.
+    This DAO interacts with the Artifactory API over HTTP or HTTPS.
 
     This class is thread safe.
     """
@@ -36,11 +36,11 @@ class VersionApiClient(object):
     def __init__(self, session, base_url, repo):
         """Set the factory for requests session and factory for API urls.
 
-        :param AuthenticatedSessionFactory session_factory: Factory for new
-            :class:`requests.Session` instances, optionally with authentication
-            injected.
-        :param VersionApiUrlGenerator url_factory: Factory for creating new
-            URL and parameter pairs for making requests to the Artifactory API.
+        :param requests.Session session: Session for making HTTP requests to
+            the Artifactory API. This session should be configured with any required
+            credentials for accessing the API.
+        :param str|unicode base_url: Base URL to the Artifactory installation
+        :param str|unicode repo: Name of repository to search against.
         """
         self._session = session
         self._base_url = base_url
