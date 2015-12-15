@@ -253,7 +253,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
         version_type = 'integration' if self._is_snapshot else 'non-integration'
-        return stac.exceptions.StacNoMatchingVersionsError(
+        return stac.exceptions.NoMatchingVersionsError(
             "No {version_type} versions of {group}.{name} could be found. It might be the "
             "case that there have not been any {version_type} deployments done yet.".format(
                 version_type=version_type,

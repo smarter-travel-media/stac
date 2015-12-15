@@ -23,7 +23,7 @@ from .client import (
 )
 from .exceptions import (
     StacError,
-    StacNoMatchingVersionsError
+    NoMatchingVersionsError
 )
 
 __all__ = [
@@ -32,5 +32,5 @@ __all__ = [
     'MavenArtifactoryClient',
     'MavenArtifactoryClientConfig',
     'StacError',
-    'StacNoMatchingVersionsError'
+    'NoMatchingVersionsError'
 ]

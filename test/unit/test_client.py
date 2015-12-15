@@ -48,7 +48,7 @@ class TestMavenArtifactoryClient(object):
 
     def test_get_latest_version_snapshot_no_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         request = mock.Mock(spec=requests.Request)
         response = mock.Mock(spec=requests.Response)
@@ -64,7 +64,7 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_version('com.example.users.service', 'war')
 
     def test_get_latest_version_release(self, http_client):
@@ -85,7 +85,7 @@ class TestMavenArtifactoryClient(object):
 
     def test_get_latest_version_release_no_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         request = mock.Mock(spec=requests.Request)
         response = mock.Mock(spec=requests.Response)
@@ -101,7 +101,7 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_version('com.example.users.service', 'war')
 
     def test_get_latest_versions_snapshot(self, http_client):
@@ -128,7 +128,7 @@ class TestMavenArtifactoryClient(object):
 
     def test_get_latest_versions_snapshot_no_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         request = mock.Mock(spec=requests.Request)
         response = mock.Mock(spec=requests.Response)
@@ -144,12 +144,12 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_versions('com.example.users.service', 'war')
 
     def test_get_latest_versions_snapshot_only_release_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         http_client.get_most_recent_versions.return_value = []
 
@@ -161,7 +161,7 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_versions('com.example.users.service', 'war')
 
     def test_get_latest_versions_release(self, http_client):
@@ -187,7 +187,7 @@ class TestMavenArtifactoryClient(object):
 
     def test_get_latest_versions_release_no_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         request = mock.Mock(spec=requests.Request)
         response = mock.Mock(spec=requests.Response)
@@ -203,12 +203,12 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_versions('com.example.users.service', 'war')
 
     def test_get_latest_versions_release_only_snapshot_results(self, http_client):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
-        from stac.exceptions import StacNoMatchingVersionsError
+        from stac.exceptions import NoMatchingVersionsError
 
         http_client.get_most_recent_versions.return_value = []
 
@@ -220,7 +220,7 @@ class TestMavenArtifactoryClient(object):
 
         maven_client = MavenArtifactoryClient(config)
 
-        with pytest.raises(StacNoMatchingVersionsError):
+        with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_versions('com.example.users.service', 'war')
 
 
