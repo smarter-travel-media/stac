@@ -50,7 +50,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   usage
+   quickstart
+   advanced
    api
    changes
 
