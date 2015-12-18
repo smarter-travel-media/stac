@@ -55,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 from datetime import datetime
-project = u'Artificium'
+project = u'Stac'
 copyright = u'{0}, Smarter Travel'.format(datetime.utcnow().strftime('%Y'))
 author = u'Smarter Travel'
 

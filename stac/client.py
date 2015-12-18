@@ -196,7 +196,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         .. seealso::
 
-            :meth:`ArtifactoryClient.get_release`
+            :meth:`stac.client.ArtifactoryClient.get_version`
 
         """
 
@@ -228,7 +228,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         .. seealso::
 
-            :meth:`ArtifactoryClient.get_latest_release`
+            :meth:`stac.client.ArtifactoryClient.get_latest_version`
 
         """
         group, artifact = full_name.rsplit('.', 1)
@@ -291,7 +291,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         .. seealso::
 
-            :meth:`ArtifactoryClient.get_latest_releases`
+            :meth:`stac.client.ArtifactoryClient.get_latest_versions`
 
         """
         if limit < 1:
