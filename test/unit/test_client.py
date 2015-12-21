@@ -67,6 +67,23 @@ class TestMavenArtifactoryClient(object):
         with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_version('com.example.users.service', 'war')
 
+    def test_get_latest_version_snapshot_only_release_results(self, version_dao):
+        from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+        from stac.exceptions import NoMatchingVersionsError
+
+        version_dao.get_most_recent_versions.return_value = []
+
+        config = MavenArtifactoryClientConfig()
+        config.base_url = 'https://www.example.com/artifactory'
+        config.repo = 'libs-snapshot'
+        config.is_snapshot = True
+        config.dao = version_dao
+
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(NoMatchingVersionsError):
+            maven_client.get_latest_version('com.example.users.service', 'war')
+
     def test_get_latest_version_release(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
 

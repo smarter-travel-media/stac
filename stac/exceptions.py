@@ -36,4 +36,6 @@ class NoMatchingVersionsError(RuntimeError):
         super(NoMatchingVersionsError, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return "{0} {1}".format(super(NoMatchingVersionsError, self).__str__(), self.cause)
+        if self.cause is not None:
+            return "{0} {1}".format(super(NoMatchingVersionsError, self).__str__(), self.cause)
+        return super(NoMatchingVersionsError, self).__str__()

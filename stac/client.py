@@ -255,9 +255,11 @@ class MavenArtifactoryClient(ArtifactoryClient):
             group, artifact, packaging, release_version, descriptor)
 
     def _get_latest_snapshot_version(self, group, artifact, packaging, descriptor):
-        snapshot_version = self._dao.get_most_recent_versions(group, artifact, 1, integration=True)[0]
+        snapshot_versions = self._dao.get_most_recent_versions(group, artifact, 1, integration=True)
+        if not snapshot_versions:
+            raise self._get_wrapped_exception(group, artifact)
         return self._artifact_urls.get_version_url(
-            group, artifact, packaging, snapshot_version, descriptor)
+            group, artifact, packaging, snapshot_versions[0], descriptor)
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
         version_type = 'integration' if self._is_snapshot else 'non-integration'
