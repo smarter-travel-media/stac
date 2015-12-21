@@ -73,7 +73,7 @@ it's pretty much the same as getting the single most recent release version).
 
     client = stac.api.new_maven_client('https://www.example.com/artifactory', 'libs-release')
     jars = client.get_latest_versions('com.example.services.auth', 'jar', limit=3)
-    print(jar)
+    print(jars)
     # [
     #   'https://www.example.com/artifactory/libs-release/com/example/services/auth/1.3.0/auth-1.3.0.jar',
     #   'https://www.example.com/artifactory/libs-release/com/example/services/auth/1.2.8/auth-1.2.8.jar',
@@ -97,7 +97,7 @@ for snapshot versions.
 
     client = stac.api.new_maven_client('https://www.example.com/artifactory', 'libs-snapshot', is_snapshot=True)
     jars = client.get_latest_versions('com.example.services.locations', 'jar', limit=3)
-    print(jar)
+    print(jars)
     # [
     #   'https://www.example.com/artifactory/libs-snapshot/com/example/services/locations/4.1.0-SNAPSHOT/locations-4.1.0-SNAPSHOT.jar',
     #   'https://www.example.com/artifactory/libs-snapshot/com/example/services/locations/4.0.0-SNAPSHOT/locations-4.0.0-SNAPSHOT.jar',
