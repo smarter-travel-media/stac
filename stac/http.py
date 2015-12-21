@@ -18,6 +18,7 @@ with this module directly.
 
 from __future__ import absolute_import
 
+# pylint: disable=import-error,no-name-in-module
 import distutils.version
 
 import stac.exceptions
@@ -61,9 +62,9 @@ class VersionApiDao(object):
         params = {'g': group, 'a': artifact, 'repos': self._repo}
         self._logger.debug("Using latest version API at %s - params %s", url, params)
 
-        r = self._session.get(url, params=params)
-        r.raise_for_status()
-        return r.text.strip()
+        response = self._session.get(url, params=params)
+        response.raise_for_status()
+        return response.text.strip()
 
     def get_most_recent_versions(self, group, artifact, limit, integration=False):
         """Get a list of the version numbers of the most recent artifacts (integration
@@ -88,10 +89,12 @@ class VersionApiDao(object):
         params = {'g': group, 'a': artifact, 'repos': self._repo}
         self._logger.debug("Using all version API at %s - params %s", url, params)
 
-        r = self._session.get(url, params=params)
-        r.raise_for_status()
+        response = self._session.get(url, params=params)
+        response.raise_for_status()
 
-        response = r.json()
-        versions = [item['version'] for item in response['results'] if item['integration'] is integration]
+        json = response.json()
+        versions = [
+            item['version'] for item in json['results'] if item['integration'] is integration]
+        # pylint: disable=no-member
         versions.sort(key=distutils.version.LooseVersion, reverse=True)
         return versions[:limit]
