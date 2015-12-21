@@ -13,7 +13,7 @@ import stac
 AUTHOR = 'Smarter Travel'
 VERSION = stac.__version__
 EMAIL = ''
-DESCRIPTION = ''
+DESCRIPTION = 'Smarter Travel Artifactory Client'
 URL = 'https://github.com/smarter-travel-media/stac'
 LICENSE = 'MIT'
 CLASSIFIERS = [
