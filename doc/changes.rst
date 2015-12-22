@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.0 - ????-??-??
+------------------
+* **Breaking change** - ``get_latest_version`` and ``get_latest_versions`` methods in the client now return
+  version numbers only. Callers can use the ``get_version_url`` method to construct artifact URLs if desired.
+
 0.1.1 - 2015-12-22
 ------------------
 * Gracefully handle the case when we are looking for the latest SNAPSHOT version but

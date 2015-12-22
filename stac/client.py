@@ -24,7 +24,7 @@ import stac.exceptions
 import stac.http
 import stac.util
 
-DEFAULT_RELEASE_LIMIT = 5
+DEFAULT_VERSION_LIMIT = 5
 
 
 class ArtifactoryClient(object):
@@ -42,54 +42,15 @@ class ArtifactoryClient(object):
 
     @abstractmethod
     def get_version_url(self, full_name, packaging, version, descriptor=None):
-        """Get the URL to a specific version of the given project, optionally using
-        a descriptor to get a particular variant of the version (associated sources vs
-        the actual application for example). How the ``full_name`` and ``descriptor``
-        are used is implementation dependent.
-
-        :param str full_name: Fully qualified name of the artifact to get the path of.
-        :param str packaging: Type of packaging / file format used for the artifact
-        :param str version: Version of the artifact to get the path of.
-        :param str descriptor: Tag to get a particular variant of a release.
-        :return: URL to the artifact with given name and version
-        :rtype: str
-        """
+        pass
 
     @abstractmethod
-    def get_latest_version_url(self, full_name, packaging, descriptor=None):
-        """Get the URL to the most recent version of the given project, optionally using
-        a descriptor to get a particular variant of the version (associated sources vs the
-        actual application for example). How the ``full_name`` and ``descriptor`` are used
-        is implementation dependent.
-
-        :param str full_name: Fully qualified name of the artifact to get the path of.
-        :param str descriptor: Tag to get a particular variant of a release.
-        :param str packaging: Type of packaging / file format used for the artifact
-        :return: URL to the artifact with given name
-        :rtype: str
-        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could
-            be found
-        """
+    def get_latest_version(self, full_name):
+        pass
 
     @abstractmethod
-    def get_latest_versions_urls(
-            self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the URLs to the most recent versions of the given project, most recent versions
-        first, optionally using a descriptor to get a particular variant of the versions
-        (associated sources vs the actual application for example). How the ``full_name`` and
-        ``descriptor`` are used is implementation dependent.
-
-        :param str full_name: Full qualified name of the artifacts to get the path of.
-        :param str descriptor: Tag to get a particular variant of each release
-        :param str packaging: Type of packaging / file format used for the artifacts
-        :param int limit: Only get the ``limit`` most recent releases.
-        :return: URL to each of the most recent artifacts with the given name, ordered
-            with most recent releases first.
-        :rtype: list
-        :raises ValueError: If limit is negative or zero
-        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could be
-            found
-        """
+    def get_latest_versions(self, full_name, limit=DEFAULT_VERSION_LIMIT):
+        pass
 
 
 def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=None):
@@ -196,42 +157,32 @@ class MavenArtifactoryClient(ArtifactoryClient):
         The example above would return a path object for the sources jar of version 1.4.5
         of some hypothetical user service.
 
-        .. seealso::
+        This method does not make any network requests.
 
-            :meth:`stac.client.ArtifactoryClient.get_version`
-
+        :param str full_name: Fully qualified name of the artifact to get the path of.
+        :param str packaging: Type of packaging / file format used for the artifact
+        :param str version: Version of the artifact to get the path of.
+        :param str descriptor: Tag to get a particular variant of a release.
+        :return: URL to the artifact with given name and version
+        :rtype: str
         """
-
         group, artifact = full_name.rsplit('.', 1)
         url = self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor)
         return url
 
-    def get_latest_version_url(self, full_name, packaging, descriptor=None):
-        """Get the URL to the most recent version of the given project, optionally using
-        a descriptor to get a particular variant of the version (sources, javadocs, etc.).
+    def get_latest_version(self, full_name):
+        """Get the most recent version of the given project.
 
-        The name of the artifact to get a path to should be composed of the group ID
-        and artifact ID (in Maven parlance). E.g. "com.example.project.service".
+        The name of the artifact should be composed of the group ID and artifact ID (in
+        Maven parlance). E.g. "com.example.project.service".
 
-        Packaging should be the type of file used for the artifact, e.g. 'war', 'jar', 'pom',
-        etc.
+        This method makes a single network request.
 
-        The descriptor may be used to select javadoc jars, sources jars, or any other
-        assemblies created as part of the version of the artifact.
-
-        Example usage:
-
-        >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_latest_version_url('com.example.users.service', 'war')
-        'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
-
-        The example above would return a path object for the war of version 1.6.0 of some
-        hypothetical user service.
-
-        .. seealso::
-
-            :meth:`stac.client.ArtifactoryClient.get_latest_version`
-
+        :param str full_name: Fully qualified name of the artifact to get the version of.
+        :return: Version number of the latest version of the artifact
+        :rtype: str
+        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could
+            be found
         """
         group, artifact = full_name.rsplit('.', 1)
         try:
@@ -244,7 +195,52 @@ class MavenArtifactoryClient(ArtifactoryClient):
             if e.response is not None and e.response.status_code == requests.codes.not_found:
                 raise self._get_wrapped_exception(group, artifact, cause=e)
             raise
-        return self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor)
+        return version
+
+    def get_latest_versions(self, full_name, limit=DEFAULT_VERSION_LIMIT):
+        """Get the most recent versions of the given project, ordered most recent to least
+        recent.
+
+        The name of the artifact to should be composed of the group ID and artifact ID (in Maven
+        parlance). E.g. "com.example.project.service".
+
+        Example usage:
+
+        >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
+        >>> client.get_latest_versions('com.example.users.service', limit=3)
+        ['1.6.0', '1.5.4', '1.5.3']
+
+        The example above would return a list of the three most recent versions of some hypothetical
+        user service.
+
+        This method makes a single network request.
+
+        :param str full_name: Full qualified name of the artifacts to get the versions of.
+        :param int limit: Only get the ``limit`` most recent versions.
+        :return: Most recent versions of the artifact with the given name, ordered with most
+            recent first.
+        :rtype: list
+        :raises ValueError: If limit is negative or zero
+        :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could be
+            found
+        """
+        if limit < 1:
+            raise ValueError("Releases limit must be positive")
+
+        group, artifact = full_name.rsplit('.', 1)
+
+        try:
+            versions = self._dao.get_most_recent_versions(
+                group, artifact, limit, integration=self._is_snapshot)
+        except requests.HTTPError as e:
+            # pylint: disable=no-member
+            if e.response is not None and e.response.status_code == requests.codes.not_found:
+                raise self._get_wrapped_exception(group, artifact, cause=e)
+            raise
+
+        if not versions:
+            raise self._get_wrapped_exception(group, artifact)
+        return versions
 
     def _get_latest_release_version(self, group, artifact):
         return self._dao.get_most_recent_release(group, artifact)
@@ -265,61 +261,6 @@ class MavenArtifactoryClient(ArtifactoryClient):
                 name=artifact
             ), cause=cause
         )
-
-    def get_latest_versions_urls(
-            self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
-        """Get the URLs to the most recent versions of the given project, most recent version
-        first, optionally using a descriptor to get a particular variant of the versions (sources,
-        javadocs, etc.).
-
-        The name of the artifact to get a path to should be composed of the group ID
-        and artifact ID (in Maven parlance). E.g. "com.example.project.service".
-
-        Packaging should be the type of file used for the artifacts, e.g. 'war', 'jar', 'pom',
-        etc.
-
-        The descriptor may be used to select javadoc jars, sources jars, or any other
-        assemblies created as part of the version of the artifact.
-
-        Example usage:
-
-        >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_latest_versions_urls('com.example.users.service', 'war', limit=3)
-        [
-            'https://www.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war',
-            'https://www.example.com/artifactory/libs-release/com/example/users/service/1.5.4/service-1.5.4.war',
-            'https://www.example.com/artifactory/libs-release/com/example/users/service/1.5.3/service-1.5.3.war'
-        ]
-
-        The example above would return a list of URLs for the wars of the three most recent
-        versions of some hypothetical user service.
-
-        .. seealso::
-
-            :meth:`stac.client.ArtifactoryClient.get_latest_versions`
-
-        """
-        if limit < 1:
-            raise ValueError("Releases limit must be positive")
-
-        group, artifact = full_name.rsplit('.', 1)
-
-        try:
-            versions = self._dao.get_most_recent_versions(
-                group, artifact, limit, integration=self._is_snapshot)
-        except requests.HTTPError as e:
-            # pylint: disable=no-member
-            if e.response is not None and e.response.status_code == requests.codes.not_found:
-                raise self._get_wrapped_exception(group, artifact, cause=e)
-            raise
-
-        out = []
-        for version in versions:
-            out.append(self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor))
-
-        if not out:
-            raise self._get_wrapped_exception(group, artifact)
-        return out
 
 
 class _MavenArtifactUrlGenerator(object):

@@ -1,6 +1,9 @@
 Stac - Smarter Travel Artifactory Client
 ========================================
 
+.. image:: https://travis-ci.org/smarter-travel-media/stac.svg?branch=master
+    :target: https://travis-ci.org/smarter-travel-media/stac
+
 **WARNING - This is super pre-alpha-barely-works software right now**
 
 Stac is a tiny Artifactory client designed for getting the most recent version (or versions)
@@ -34,6 +37,10 @@ Using Stac is easy!
 
     >>> from stac.api import new_maven_client
     >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-    >>> client.get_latest_version('com.example.services.authentication', 'jar')
+    >>> version = client.get_latest_version('com.example.services.authentication')
+    >>> version
+    '1.2.3'
+    >>> url = client.get_version_url('com.example.services.authentication', 'jar', version)
+    >>> url
     'https://www.example.com/artifactory/libs-release/com/example/services/authentication/1.2.3/authentication-1.2.3.jar'
 

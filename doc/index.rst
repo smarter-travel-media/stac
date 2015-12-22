@@ -39,9 +39,12 @@ Using Stac is easy!
 
     >>> from stac.api import new_maven_client
     >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-    >>> client.get_latest_version('com.example.services.auth', 'jar')
-    'https://www.example.com/artifactory/libs-release/com/example/services/auth/1.2.3/auth-1.2.3.jar'
-
+    >>> version = client.get_latest_version('com.example.services.authentication')
+    >>> version
+    '1.2.3'
+    >>> url = client.get_version_url('com.example.services.authentication', 'jar', version)
+    >>> url
+    'https://www.example.com/artifactory/libs-release/com/example/services/authentication/1.2.3/authentication-1.2.3.jar'
 
 
 Contents
