@@ -118,6 +118,15 @@ class TestMavenArtifactoryClient(object):
         with pytest.raises(NoMatchingVersionsError):
             maven_client.get_latest_version('com.example.users.service')
 
+    def test_get_latest_versions_bad_limit(self):
+        from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
+
+        config = MavenArtifactoryClientConfig()
+        maven_client = MavenArtifactoryClient(config)
+
+        with pytest.raises(ValueError):
+            maven_client.get_latest_versions('com.example.users.service', 0)
+
     def test_get_latest_versions_snapshot(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
 
