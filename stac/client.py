@@ -17,15 +17,12 @@ the Stac library.
 """
 
 from __future__ import absolute_import
-
 from abc import ABCMeta, abstractmethod
 
 import requests
-
 import stac.exceptions
 import stac.http
 import stac.util
-
 
 DEFAULT_RELEASE_LIMIT = 5
 
@@ -44,7 +41,7 @@ class ArtifactoryClient(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_version(self, full_name, packaging, version, descriptor=None):
+    def get_version_url(self, full_name, packaging, version, descriptor=None):
         """Get the URL to a specific version of the given project, optionally using
         a descriptor to get a particular variant of the version (associated sources vs
         the actual application for example). How the ``full_name`` and ``descriptor``
@@ -59,7 +56,7 @@ class ArtifactoryClient(object):
         """
 
     @abstractmethod
-    def get_latest_version(self, full_name, packaging, descriptor=None):
+    def get_latest_version_url(self, full_name, packaging, descriptor=None):
         """Get the URL to the most recent version of the given project, optionally using
         a descriptor to get a particular variant of the version (associated sources vs the
         actual application for example). How the ``full_name`` and ``descriptor`` are used
@@ -75,7 +72,7 @@ class ArtifactoryClient(object):
         """
 
     @abstractmethod
-    def get_latest_versions(
+    def get_latest_versions_urls(
             self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
         """Get the URLs to the most recent versions of the given project, most recent versions
         first, optionally using a descriptor to get a particular variant of the versions
@@ -102,7 +99,7 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     Most users will simply call this method to get a new Maven client instance. For example:
 
     >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-    >>> latest = client.get_latest_version('com.example.users.service', 'war')
+    >>> latest = client.get_latest_version_url('com.example.users.service', 'war')
     'https://www.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
 
     :param str base_url: URL to root of the Artifactory installation. Example,
@@ -177,7 +174,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         self._dao = config.dao
         self._artifact_urls = _MavenArtifactUrlGenerator(config.base_url, config.repo)
 
-    def get_version(self, full_name, packaging, version, descriptor=None):
+    def get_version_url(self, full_name, packaging, version, descriptor=None):
         """Get the URL to a specific version of the given project, optionally using
         a descriptor to get a particular variant of the version (sources, javadocs, etc.).
 
@@ -193,7 +190,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_version('com.example.users.service', '1.4.5', 'jar', descriptor='sources')
+        >>> client.get_version_url('com.example.users.service', '1.4.5', 'jar', descriptor='sources')
         'https://www.example.com/artifactory/libs-release/com/example/users/service/1.4.5/service-1.4.5-sources.jar'
 
         The example above would return a path object for the sources jar of version 1.4.5
@@ -209,7 +206,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         url = self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor)
         return url
 
-    def get_latest_version(self, full_name, packaging, descriptor=None):
+    def get_latest_version_url(self, full_name, packaging, descriptor=None):
         """Get the URL to the most recent version of the given project, optionally using
         a descriptor to get a particular variant of the version (sources, javadocs, etc.).
 
@@ -225,7 +222,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_latest_version('com.example.users.service', 'war')
+        >>> client.get_latest_version_url('com.example.users.service', 'war')
         'https://artifactory.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
 
         The example above would return a path object for the war of version 1.6.0 of some
@@ -239,27 +236,24 @@ class MavenArtifactoryClient(ArtifactoryClient):
         group, artifact = full_name.rsplit('.', 1)
         try:
             if not self._is_snapshot:
-                url = self._get_latest_release_version(group, artifact, packaging, descriptor)
+                version = self._get_latest_release_version(group, artifact)
             else:
-                url = self._get_latest_snapshot_version(group, artifact, packaging, descriptor)
+                version = self._get_latest_snapshot_version(group, artifact)
         except requests.HTTPError as e:
             # pylint: disable=no-member
             if e.response is not None and e.response.status_code == requests.codes.not_found:
                 raise self._get_wrapped_exception(group, artifact, cause=e)
             raise
-        return url
+        return self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor)
 
-    def _get_latest_release_version(self, group, artifact, packaging, descriptor):
-        release_version = self._dao.get_most_recent_release(group, artifact)
-        return self._artifact_urls.get_version_url(
-            group, artifact, packaging, release_version, descriptor)
+    def _get_latest_release_version(self, group, artifact):
+        return self._dao.get_most_recent_release(group, artifact)
 
-    def _get_latest_snapshot_version(self, group, artifact, packaging, descriptor):
+    def _get_latest_snapshot_version(self, group, artifact):
         snapshot_versions = self._dao.get_most_recent_versions(group, artifact, 1, integration=True)
         if not snapshot_versions:
             raise self._get_wrapped_exception(group, artifact)
-        return self._artifact_urls.get_version_url(
-            group, artifact, packaging, snapshot_versions[0], descriptor)
+        return snapshot_versions[0]
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
         version_type = 'integration' if self._is_snapshot else 'non-integration'
@@ -272,7 +266,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
             ), cause=cause
         )
 
-    def get_latest_versions(
+    def get_latest_versions_urls(
             self, full_name, packaging, descriptor=None, limit=DEFAULT_RELEASE_LIMIT):
         """Get the URLs to the most recent versions of the given project, most recent version
         first, optionally using a descriptor to get a particular variant of the versions (sources,
@@ -290,7 +284,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_latest_versions('com.example.users.service', 'war', limit=3)
+        >>> client.get_latest_versions_urls('com.example.users.service', 'war', limit=3)
         [
             'https://www.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war',
             'https://www.example.com/artifactory/libs-release/com/example/users/service/1.5.4/service-1.5.4.war',

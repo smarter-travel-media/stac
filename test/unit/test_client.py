@@ -25,7 +25,7 @@ class TestMavenArtifactoryClient(object):
         config.dao = version_dao
 
         maven_client = MavenArtifactoryClient(config)
-        url = maven_client.get_version('com.example.users.service', 'jar', '1.2.3')
+        url = maven_client.get_version_url('com.example.users.service', 'jar', '1.2.3')
         assert ('https://www.example.com/artifactory/libs-release/' +
                 'com/example/users/service/1.2.3/service-1.2.3.jar') == url
 
@@ -42,7 +42,7 @@ class TestMavenArtifactoryClient(object):
         config.dao = version_dao
 
         maven_client = MavenArtifactoryClient(config)
-        url = maven_client.get_latest_version('com.example.users.service', 'jar')
+        url = maven_client.get_latest_version_url('com.example.users.service', 'jar')
         assert ('https://www.example.com/artifactory/libs-snapshot/' +
                 'com/example/users/service/1.3.0-SNAPSHOT/service-1.3.0-SNAPSHOT.jar') == url
 
@@ -65,7 +65,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_version('com.example.users.service', 'war')
+            maven_client.get_latest_version_url('com.example.users.service', 'war')
 
     def test_get_latest_version_snapshot_only_release_results(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -82,7 +82,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_version('com.example.users.service', 'war')
+            maven_client.get_latest_version_url('com.example.users.service', 'war')
 
     def test_get_latest_version_release(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -96,7 +96,7 @@ class TestMavenArtifactoryClient(object):
         config.dao = version_dao
 
         maven_client = MavenArtifactoryClient(config)
-        url = maven_client.get_latest_version('com.example.users.service', 'jar')
+        url = maven_client.get_latest_version_url('com.example.users.service', 'jar')
         assert ('https://www.example.com/artifactory/libs-release/' +
                 'com/example/users/service/4.13.4/service-4.13.4.jar') == url
 
@@ -119,7 +119,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_version('com.example.users.service', 'war')
+            maven_client.get_latest_version_url('com.example.users.service', 'war')
 
     def test_get_latest_versions_snapshot(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -134,7 +134,7 @@ class TestMavenArtifactoryClient(object):
         config.dao = version_dao
 
         maven_client = MavenArtifactoryClient(config)
-        urls = maven_client.get_latest_versions('com.example.users.service', 'war')
+        urls = maven_client.get_latest_versions_urls('com.example.users.service', 'war')
         expected = [
             'https://www.example.com/artifactory/libs-snapshot/com/example/users/service/1.3.0-SNAPSHOT/service-1.3.0-SNAPSHOT.war',
             'https://www.example.com/artifactory/libs-snapshot/com/example/users/service/1.2.1-SNAPSHOT/service-1.2.1-SNAPSHOT.war',
@@ -162,7 +162,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_versions('com.example.users.service', 'war')
+            maven_client.get_latest_versions_urls('com.example.users.service', 'war')
 
     def test_get_latest_versions_snapshot_only_release_results(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -179,7 +179,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_versions('com.example.users.service', 'war')
+            maven_client.get_latest_versions_urls('com.example.users.service', 'war')
 
     def test_get_latest_versions_release(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -193,7 +193,7 @@ class TestMavenArtifactoryClient(object):
         config.dao = version_dao
 
         maven_client = MavenArtifactoryClient(config)
-        urls = maven_client.get_latest_versions('com.example.users.service', 'war')
+        urls = maven_client.get_latest_versions_urls('com.example.users.service', 'war')
         expected = [
             'https://www.example.com/artifactory/libs-release/com/example/users/service/1.2.1/service-1.2.1.war',
             'https://www.example.com/artifactory/libs-release/com/example/users/service/1.2.0/service-1.2.0.war',
@@ -221,7 +221,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_versions('com.example.users.service', 'war')
+            maven_client.get_latest_versions_urls('com.example.users.service', 'war')
 
     def test_get_latest_versions_release_only_snapshot_results(self, version_dao):
         from stac.client import MavenArtifactoryClient, MavenArtifactoryClientConfig
@@ -238,7 +238,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = MavenArtifactoryClient(config)
 
         with pytest.raises(NoMatchingVersionsError):
-            maven_client.get_latest_versions('com.example.users.service', 'war')
+            maven_client.get_latest_versions_urls('com.example.users.service', 'war')
 
 
 class TestMavenArtifactUrlGenerator(object):
