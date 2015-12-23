@@ -19,8 +19,10 @@ from __future__ import absolute_import as _
 from .client import (
     new_maven_client,
     ArtifactoryClient,
-    MavenArtifactoryClient,
-    MavenArtifactoryClientConfig,
+    GenericArtifactoryClient,
+    GenericArtifactoryClientConfig,
+    ArtifactUrlGenerator,
+    MavenArtifactUrlGenerator
 )
 from .exceptions import (
     StacError,
@@ -33,8 +35,10 @@ from .http import (
 __all__ = [
     'new_maven_client',
     'ArtifactoryClient',
-    'MavenArtifactoryClient',
-    'MavenArtifactoryClientConfig',
+    'GenericArtifactoryClient',
+    'GenericArtifactoryClientConfig',
+    'ArtifactUrlGenerator',
+    'MavenArtifactUrlGenerator',
     'VersionApiDao',
     'StacError',
     'NoMatchingVersionsError'

@@ -41,17 +41,13 @@ Doing this is a little more involved than just creating a standard client but it
     # And configure it
     session.verify = False
 
-    # Create a custom API DAO that will use our session
-    dao = stac.api.VersionApiDao(session, 'https://repo.example.com/artifactory', 'libs-release')
-
     # Construct the configuration for the client
-    client_config = stac.api.MavenArtifactoryClientConfig()
-    client_config.base_url = 'https://repo.example.com/artifactory'
-    client_config.repo = 'libs-release'
-    client_config.dao = dao
+    client_config = stac.api.GenericArtifactoryClientConfig()
+    client_config.http_dao = stac.api.VersionApiDao(session, 'https://repo.example.com/artifactory', 'libs-release')
+    client_config.url_generator = stac.api.MavenArtifactUrlGenerator('https://repo.example.com/artifactory', 'libs-release')
 
     # Create the client instance
-    client = stac.api.MavenArtifactoryClient(client_config)
+    client = stac.api.GenericArtifactoryClient(client_config)
 
     # Use it as normal
     version = client.get_latest_version('com.example.services.locations')

@@ -20,11 +20,17 @@ to worry about.
 .. autoclass:: stac.client.ArtifactoryClient
     :inherited-members:
 
-.. autoclass:: stac.client.MavenArtifactoryClient
+.. autoclass:: stac.client.GenericArtifactoryClient
     :inherited-members:
     :special-members: __init__
 
-.. autoclass:: stac.client.MavenArtifactoryClientConfig
+.. autoclass:: stac.client.GenericArtifactoryClientConfig
+    :inherited-members:
+
+.. autoclass:: stac.client.ArtifactUrlGenerator
+    :inherited-members:
+
+.. autoclass:: stac.client.MavenArtifactUrlGenerator
     :inherited-members:
 
 .. autofunction:: stac.client.new_maven_client

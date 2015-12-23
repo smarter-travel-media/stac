@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.0 - ????-??-??
+------------------
+* **Breaking change** - Rename ``MavenArtifactoryClient`` to ``GenericArtifactoryClient`` and move all Maven-
+  specific logic to a URL generator class that can be injected into it. Users creating the client via
+  ``new_maven_client`` shouldn't notice any changes.
+
 0.2.0 - 2015-12-23
 ------------------
 * **Breaking change** - ``get_latest_version`` and ``get_latest_versions`` methods in the client now return

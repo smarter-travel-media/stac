@@ -2,8 +2,9 @@ Quickstart
 ==========
 
 The following examples will walk through some simple uses of the :class:`stac.client.ArtifactoryClient`
-implementation for Maven repository layouts (:class:`stac.client.MavenArtifactoryClient`). Since this
-client is focused on deploy related use cases, the examples below will as well.
+implementation for Maven repository layouts (:class:`stac.client.GenericArtifactoryClient` paired with
+:class:`stac.client.MavenArtifactUrlGenerator`). Since this client is focused on deploy related use cases,
+the examples below will as well.
 
 Get a Specific Version
 ----------------------

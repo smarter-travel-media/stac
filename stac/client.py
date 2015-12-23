@@ -18,7 +18,6 @@ the Stac library.
 
 from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-
 import requests
 import stac.exceptions
 import stac.http
@@ -28,7 +27,7 @@ DEFAULT_VERSION_LIMIT = 5
 
 
 class ArtifactoryClient(object):
-    """Interface for getting artifact URLs based on an artifact name and packaging.
+    """Interface for getting URLs and versions of artifacts.
 
     How artifact names, packaging, and descriptors are interpreted is implementation
     specific and typically based on a particular repository layout. For example
@@ -53,6 +52,22 @@ class ArtifactoryClient(object):
         pass
 
 
+class ArtifactUrlGenerator(object):
+    """Interface for generating the URL to download a particular version of an
+    artifact.
+
+    Implementations will typically be specific to a particular repository layout
+    in Artifactory. I.e. there may be one URL generator for Maven repositories,
+    another one for Python packages, and another for NPM modules.
+    """
+
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def get_url(self, group, artifact, packaging, version, descriptor):
+        pass
+
+
 def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=None):
     """Get a new implementation of :class:`ArtifactoryClient` for use with Maven repository
     layouts, optionally using the provided authentication.
@@ -60,8 +75,8 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     Most users will simply call this method to get a new Maven client instance. For example:
 
     >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-    >>> latest = client.get_latest_version_url('com.example.users.service', 'war')
-    'https://www.example.com/artifactory/libs-release/com/example/users/service/1.6.0/service-1.6.0.war'
+    >>> latest = client.get_latest_version('com.example.users.service', 'war')
+    '1.6.0'
 
     :param str base_url: URL to root of the Artifactory installation. Example,
         "https://artifactory.example.com/artifactory".
@@ -74,52 +89,44 @@ def new_maven_client(base_url, repo, is_snapshot=False, username=None, password=
     :param str password: Optional password for authentication when making API calls and
         downloading artifacts.
     :return: New Artifactory client for use with Maven repositories
-    :rtype: MavenArtifactoryClient
+    :rtype: GenericArtifactoryClient
     """
 
     session = requests.Session()
     if username is not None and password is not None:
         session.auth = (username, password)
 
-    config = MavenArtifactoryClientConfig()
-    config.base_url = base_url
-    config.repo = repo
-    config.is_snapshot = is_snapshot
-    config.dao = stac.http.VersionApiDao(session, base_url, repo)
+    config = GenericArtifactoryClientConfig()
+    config.is_integration = is_snapshot
+    config.http_dao = stac.http.VersionApiDao(session, base_url, repo)
+    config.url_generator = MavenArtifactUrlGenerator(base_url, repo)
 
-    return MavenArtifactoryClient(config)
+    return GenericArtifactoryClient(config)
 
 
 # pylint: disable=too-few-public-methods
-class MavenArtifactoryClientConfig(object):
-    """Configuration for construction of a new :class:`MavenArtifactoryClient` instance."""
+class GenericArtifactoryClientConfig(object):
+    """Configuration for construction of a new :class:`GenericArtifactoryClient` instance."""
 
     def __init__(self):
-        #: URL to root of the Artifactory installation. Example,
-        #: "https://artifactory.example.com/artifactory".
-        self.base_url = None
-
-        #: Which repository should searches be done against. Example, "libs-release-local"
-        #: or "libs-snapshot-local".
-        self.repo = None
-
         #: Does the repository we are searching against contain SNAPSHOT (a.k.a. integration)
         #: versions and thus require alternate API calls to determine the latest version? Default
-        #: is false
-        self.is_snapshot = False
+        #: is false.
+        self.is_integration = False
 
-        #: DAO for interacting with the Artifactory HTTP API
-        self.dao = None
+        #: DAO for interacting with the Artifactory HTTP API.
+        self.http_dao = None
+
+        #: URL generator for determining the URL to download an artifact.
+        self.url_generator = None
 
 
-class MavenArtifactoryClient(ArtifactoryClient):
-    """Implementation of a :class:`ArtifactoryClient` for working with Maven repository layouts.
+class GenericArtifactoryClient(ArtifactoryClient):
+    """Artifactory client for use with multiple different repository layouts.
 
-    .. note::
-
-        Searches performed by this client are limited to the repository set when creating the
-        client. That means, searches for a release artifact will not work if the repository has
-        only integration artifacts.
+    Different :class:`ArtifactUrlGenerator` implementations can be used with this
+    client to support different repository layouts. The logic within this client
+    should be relatively layout agnostic.
 
     This class is thread safe.
     """
@@ -127,20 +134,21 @@ class MavenArtifactoryClient(ArtifactoryClient):
     _logger = stac.util.get_log()
 
     def __init__(self, config):
-        """Create a new Maven client instance based on the supplied configuration.
+        """Create a new generic client instance based on the supplied configuration.
 
-        :param MavenArtifactoryClientConfig config: Required configuration for this client
+        :param GenericArtifactoryClientConfig config: Required configuration for this client
         """
-        self._is_snapshot = config.is_snapshot
-        self._dao = config.dao
-        self._artifact_urls = _MavenArtifactUrlGenerator(config.base_url, config.repo)
+        self._is_integration = config.is_integration
+        self._dao = config.http_dao
+        self._urls = config.url_generator
 
     def get_version_url(self, full_name, packaging, version, descriptor=None):
         """Get the URL to a specific version of the given project, optionally using
         a descriptor to get a particular variant of the version (sources, javadocs, etc.).
 
-        The name of the artifact to get a path to should be composed of the group ID
-        and artifact ID (in Maven parlance). E.g. "com.example.project.service".
+        The name of the artifact should be composed of the group ID and artifact ID
+        (if available). E.g. "com.example.project.service". Depending on the repository
+        layout, the ``full_name`` might only be the artifact name.
 
         Packaging should be the type of file used for the artifact, e.g. 'war', 'jar', 'pom',
         etc.
@@ -166,15 +174,15 @@ class MavenArtifactoryClient(ArtifactoryClient):
         :return: URL to the artifact with given name and version
         :rtype: str
         """
-        group, artifact = full_name.rsplit('.', 1)
-        url = self._artifact_urls.get_version_url(group, artifact, packaging, version, descriptor)
-        return url
+        group, artifact = _parse_full_name(full_name)
+        return self._urls.get_url(group, artifact, packaging, version, descriptor)
 
     def get_latest_version(self, full_name):
         """Get the most recent version of the given project.
 
-        The name of the artifact should be composed of the group ID and artifact ID (in
-        Maven parlance). E.g. "com.example.project.service".
+        The name of the artifact should be composed of the group ID and artifact ID
+        (if available). E.g. "com.example.project.service". Depending on the repository
+        layout, the ``full_name`` might only be the artifact name.
 
         This method makes a single network request.
 
@@ -184,9 +192,9 @@ class MavenArtifactoryClient(ArtifactoryClient):
         :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could
             be found
         """
-        group, artifact = full_name.rsplit('.', 1)
+        group, artifact = _parse_full_name(full_name)
         try:
-            if not self._is_snapshot:
+            if not self._is_integration:
                 version = self._get_latest_release_version(group, artifact)
             else:
                 version = self._get_latest_snapshot_version(group, artifact)
@@ -201,8 +209,9 @@ class MavenArtifactoryClient(ArtifactoryClient):
         """Get the most recent versions of the given project, ordered most recent to least
         recent.
 
-        The name of the artifact to should be composed of the group ID and artifact ID (in Maven
-        parlance). E.g. "com.example.project.service".
+        The name of the artifact should be composed of the group ID and artifact ID
+        (if available). E.g. "com.example.project.service". Depending on the repository
+        layout, the ``full_name`` might only be the artifact name.
 
         Example usage:
 
@@ -231,7 +240,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
 
         try:
             versions = self._dao.get_most_recent_versions(
-                group, artifact, limit, integration=self._is_snapshot)
+                group, artifact, limit, integration=self._is_integration)
         except requests.HTTPError as e:
             # pylint: disable=no-member
             if e.response is not None and e.response.status_code == requests.codes.not_found:
@@ -252,7 +261,7 @@ class MavenArtifactoryClient(ArtifactoryClient):
         return snapshot_versions[0]
 
     def _get_wrapped_exception(self, group, artifact, cause=None):
-        version_type = 'integration' if self._is_snapshot else 'non-integration'
+        version_type = 'integration' if self._is_integration else 'non-integration'
         return stac.exceptions.NoMatchingVersionsError(
             "No {version_type} versions of {group}.{name} could be found. It might be the "
             "case that there have not been any {version_type} deployments done yet.".format(
@@ -263,13 +272,21 @@ class MavenArtifactoryClient(ArtifactoryClient):
         )
 
 
-class _MavenArtifactUrlGenerator(object):
+class MavenArtifactUrlGenerator(ArtifactUrlGenerator):
+    """URL generator for use with Maven repositories."""
+
     def __init__(self, base, repo):
+        """Create a new Maven URL generator, setting the Artifactory base URL and
+        repository.
+
+        :param str base: Base URL to the Artifactory installation.
+        :param str repo: Name of the repository
+        """
         self._base = base
         self._repo = repo
 
     # pylint: disable=missing-docstring,too-many-arguments
-    def get_version_url(self, group, artifact, packaging, version, descriptor):
+    def get_url(self, group, artifact, packaging, version, descriptor):
         group_path = group.replace('.', '/')
 
         if descriptor is not None:
@@ -286,7 +303,7 @@ class _MavenArtifactUrlGenerator(object):
                 ext=packaging
             )
 
-        url = '/'.join([
+        return '/'.join([
             self._base,
             self._repo,
             group_path,
@@ -294,4 +311,12 @@ class _MavenArtifactUrlGenerator(object):
             version,
             artifact_name
         ])
-        return url
+
+
+def _parse_full_name(full_name):
+    parts = full_name.rsplit('.', 1)
+    if len(parts) == 1:
+        group, artifact = '', parts[0]
+    else:
+        group, artifact = parts[0], parts[1]
+    return group, artifact
