@@ -11,3 +11,5 @@ env
 _build
 .cache
 wheelhouse
+build
+dist
