@@ -17,7 +17,7 @@ DESCRIPTION = 'Smarter Travel Artifactory Client'
 URL = 'https://github.com/smarter-travel-media/stac'
 LICENSE = 'MIT'
 CLASSIFIERS = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX",
     "Programming Language :: Python",
