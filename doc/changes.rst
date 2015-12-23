@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.2.0 - ????-??-??
+0.2.0 - 2015-12-23
 ------------------
 * **Breaking change** - ``get_latest_version`` and ``get_latest_versions`` methods in the client now return
   version numbers only. Callers can use the ``get_version_url`` method to construct artifact URLs if desired.
