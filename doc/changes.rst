@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.3.0 - ????-??-??
+0.3.0 - 2015-12-24
 ------------------
 * **Breaking change** - Rename ``MavenArtifactoryClient`` to ``GenericArtifactoryClient`` and move all Maven-
   specific logic to a URL generator class that can be injected into it. Users creating the client via
