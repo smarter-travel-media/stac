@@ -184,6 +184,14 @@ class GenericArtifactoryClient(ArtifactoryClient):
         (if available). E.g. "com.example.project.service". Depending on the repository
         layout, the ``full_name`` might only be the artifact name.
 
+        Example usage:
+
+        >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
+        >>> client.get_latest_version('com.example.users.service')
+        '1.5.0'
+
+        The example above returns the latest version of a hypothetical user service, 1.5.0.
+
         This method makes a single network request.
 
         :param str full_name: Fully qualified name of the artifact to get the version of.
@@ -216,11 +224,11 @@ class GenericArtifactoryClient(ArtifactoryClient):
         Example usage:
 
         >>> client = new_maven_client('https://www.example.com/artifactory', 'libs-release')
-        >>> client.get_latest_versions('com.example.users.service', limit=3)
+        >>> client.get_latest_versions('com.example.auth.service', limit=3)
         ['1.6.0', '1.5.4', '1.5.3']
 
         The example above would return a list of the three most recent versions of some hypothetical
-        user service.
+        authentication service.
 
         This method makes a single network request.
 
