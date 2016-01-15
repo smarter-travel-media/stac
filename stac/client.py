@@ -244,7 +244,7 @@ class GenericArtifactoryClient(ArtifactoryClient):
         if limit < 1:
             raise ValueError("Releases limit must be positive")
 
-        group, artifact = full_name.rsplit('.', 1)
+        group, artifact = _parse_full_name(full_name)
 
         try:
             versions = self._dao.get_most_recent_versions(
