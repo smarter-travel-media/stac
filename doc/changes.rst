@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.3.1 - ????-??-??
+0.3.1 - 2016-01-25
 ------------------
 * Fix instance where ``GenericArtifactoryClient`` would not correctly handle artifacts without a ``.`` in
   the name.
