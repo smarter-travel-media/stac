@@ -2,7 +2,7 @@
 #
 # Stac - Smarter Travel Artifactory Client
 #
-# Copyright 2015 Smarter Travel
+# Copyright 2015-2016 Smarter Travel
 #
 # Available under the MIT license. See LICENSE for details.
 #
