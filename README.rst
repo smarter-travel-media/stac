@@ -44,3 +44,23 @@ Using Stac is easy!
     >>> url
     'https://www.example.com/artifactory/libs-release/com/example/services/authentication/1.2.3/authentication-1.2.3.jar'
 
+
+Documentation
+-------------
+
+The latest documentation is available at https://stac.readthedocs.org/en/latest/
+
+Source
+------
+
+The source code is available at https://github.com/smarter-travel-media/stac
+
+Download
+--------
+
+Python packages are available at https://pypi.python.org/pypi/stac
+
+Changes
+-------
+
+The change log is available at https://stac.readthedocs.org/en/latest/changes.html
