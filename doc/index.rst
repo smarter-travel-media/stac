@@ -6,8 +6,6 @@
 Stac - Smarter Travel Artifactory Client
 ========================================
 
-**WARNING - This is alpha software and subject to bugs and/or breaking changes**
-
 Stac is a tiny Artifactory client designed for getting the most recent version (or versions)
 of a project from an Artifactory server. The target use case is downloading project artifacts
 as part of a deploy process.
