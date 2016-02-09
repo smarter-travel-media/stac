@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.0 - 2016-02-09
+------------------
+* This is the first stable release of Stac. From this point on, all breaking changes will only
+  be made in major version releases. This release is functionally the same as the ``0.3.1`` release.
+
 0.3.1 - 2016-01-25
 ------------------
 * Fix instance where ``GenericArtifactoryClient`` would not correctly handle artifacts without a ``.`` in
