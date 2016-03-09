@@ -4,6 +4,9 @@ Stac - Smarter Travel Artifactory Client
 .. image:: https://travis-ci.org/smarter-travel-media/stac.svg?branch=master
     :target: https://travis-ci.org/smarter-travel-media/stac
 
+.. image:: https://img.shields.io/pypi/v/stac.svg
+    :target: https://pypi.python.org/pypi/stac
+
 Stac is a tiny Artifactory client designed for getting the most recent version (or versions)
 of a project from an Artifactory server. The target use case is downloading project artifacts
 as part of a deploy process.
