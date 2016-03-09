@@ -25,4 +25,4 @@ def get_log():
     :return: The logger instance for the library
     :rtype: logging.Logger
     """
-    return logging.getLogger('artifacts')
+    return logging.getLogger('stac')

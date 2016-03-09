@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.1 - 2016-03-09
+------------------
+* Change :class:`stac.exceptions.NoMatchingVersionsError` to be a subclass of the base
+  :class:`stac.exceptions.StacError` exception.
+* Change :func:`stac.util.get_logger` to get the ``stac`` named logger.
+
 1.0.0 - 2016-02-09
 ------------------
 * This is the first stable release of Stac. From this point on, all breaking changes will only

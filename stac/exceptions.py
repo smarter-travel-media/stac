@@ -26,7 +26,7 @@ class StacError(RuntimeError):
     """Base for exceptions raised by the Stac library"""
 
 
-class NoMatchingVersionsError(RuntimeError):
+class NoMatchingVersionsError(StacError):
     """Raised when there is no version or versions matching given criteria"""
 
     def __init__(self, *args, **kwargs):
