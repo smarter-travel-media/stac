@@ -3,6 +3,22 @@ Advanced Usage
 
 Some more advanced or non-typical usages of Stac will be outlined below.
 
+Search Remote Repositories
+--------------------------
+
+If the repository you're using is a virtual repository and you want to find the latest version of an
+artifact in one of the repositories being mirrored by it, you'll need to tell the Stac client that it
+should be searching them. Luckily, this is pretty easy.
+
+.. code-block:: python
+
+    import stac.api
+
+    client = stac.api.new_maven_client('https://internal.example.com/artifactory', 'libs-release')
+    version = client.get_latest_version('com.example.services.locations', remote=True)
+    print(version) # '4.0.5'
+
+
 Use HTTP Authentication
 -----------------------
 

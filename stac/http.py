@@ -17,10 +17,8 @@ with this module directly.
 """
 
 from __future__ import absolute_import
-
 # pylint: disable=import-error,no-name-in-module
 import distutils.version
-
 import stac.exceptions
 import stac.util
 
@@ -47,26 +45,28 @@ class VersionApiDao(object):
         self._base_url = base_url
         self._repo = repo
 
-    def get_most_recent_release(self, group, artifact):
+    def get_most_recent_release(self, group, artifact, remote=False):
         """Get the version number of the most recent release (non-integration version)
         of a particular group and artifact combination.
 
         :param str group: Group of the artifact to get the version of
         :param str artifact: Name of the artifact to get the version of
+        :param bool remote: Should remote repositories be searched to find the latest
+            version? Note this can make the request much slower. Default is false.
         :return: Version number of the most recent release
         :rtype: str
         :raises requests.exceptions.HTTPError: For any non-success HTTP responses
             from the Artifactory API.
         """
         url = self._base_url + '/api/search/latestVersion'
-        params = {'g': group, 'a': artifact, 'repos': self._repo}
+        params = {'g': group, 'a': artifact, 'repos': self._repo, 'remote': int(remote)}
         self._logger.debug("Using latest version API at %s - params %s", url, params)
 
         response = self._session.get(url, params=params)
         response.raise_for_status()
         return response.text.strip()
 
-    def get_most_recent_versions(self, group, artifact, limit, integration=False):
+    def get_most_recent_versions(self, group, artifact, limit, remote=False, integration=False):
         """Get a list of the version numbers of the most recent artifacts (integration
         or non-integration), ordered by the version number, for a particular group and
         artifact combination.
@@ -74,6 +74,8 @@ class VersionApiDao(object):
         :param str group: Group of the artifact to get versions of
         :param str artifact: Name of the artifact to get versions of
         :param int limit: Fetch only this many of the most recent releases
+        :param bool remote: Should remote repositories be searched to find the latest
+            versions? Note this can make the request much slower. Default is false.
         :param bool integration: If true, fetch only "integration versions", otherwise
             fetch only non-integration versions.
         :return: Version numbers of the most recent artifacts
@@ -86,7 +88,7 @@ class VersionApiDao(object):
             raise ValueError("Releases limit must be positive")
 
         url = self._base_url + '/api/search/versions'
-        params = {'g': group, 'a': artifact, 'repos': self._repo}
+        params = {'g': group, 'a': artifact, 'repos': self._repo, 'remote': int(remote)}
         self._logger.debug("Using all version API at %s - params %s", url, params)
 
         response = self._session.get(url, params=params)

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.1.0 - 2016-04-04
+------------------
+* Add optional parameter to :class:`stac.client.ArtifactoryClient` and implementations to
+  allow remote repositories to be searched for the latest version of an artifact.
+
 1.0.1 - 2016-03-09
 ------------------
 * Change :class:`stac.exceptions.NoMatchingVersionsError` to be a subclass of the base

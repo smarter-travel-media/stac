@@ -128,7 +128,7 @@ class TestMavenArtifactoryClient(object):
         maven_client = GenericArtifactoryClient(config)
 
         with pytest.raises(ValueError):
-            maven_client.get_latest_versions('com.example.users.service', 0)
+            maven_client.get_latest_versions('com.example.users.service', limit=0)
 
     def test_get_latest_versions_snapshot(self, version_dao, url_generator):
         from stac.client import GenericArtifactoryClient, GenericArtifactoryClientConfig
