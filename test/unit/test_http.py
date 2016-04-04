@@ -50,7 +50,7 @@ class TestVersionApiClient(object):
         http_client = VersionApiDao(session, 'https://www.example.com/artifactory', 'libs-release')
 
         with pytest.raises(ValueError):
-            http_client.get_most_recent_versions('com.example.services', 'mail', 0)
+            http_client.get_most_recent_versions('com.example.services', 'mail', remote=False, limit=0)
 
     def test_get_most_recent_versions_no_results(self, session, response):
         from stac.http import VersionApiDao
@@ -64,7 +64,7 @@ class TestVersionApiClient(object):
         http_client = VersionApiDao(session, 'https://www.example.com/artifactory', 'libs-release')
 
         with pytest.raises(requests.HTTPError):
-            http_client.get_most_recent_versions('com.example.services', 'mail', 3)
+            http_client.get_most_recent_versions('com.example.services', 'mail', remote=False, limit=3)
 
     def test_get_most_recent_versions_no_integration_results(self, session, response):
         from stac.http import VersionApiDao
@@ -91,7 +91,8 @@ class TestVersionApiClient(object):
         session.get.return_value = response
 
         http_client = VersionApiDao(session, 'https://www.example.com/artifactory', 'libs-release')
-        versions = http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=True)
+        versions = http_client.get_most_recent_versions(
+            'com.example.services', 'mail', remote=False, limit=2, integration=True)
         assert 0 == len(versions)
 
     def test_get_most_recent_versions_no_non_integration_results(self, session, response):
@@ -119,7 +120,8 @@ class TestVersionApiClient(object):
         session.get.return_value = response
 
         http_client = VersionApiDao(session, 'https://www.example.com/artifactory', 'libs-snapshot')
-        versions = http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=False)
+        versions = http_client.get_most_recent_versions(
+            'com.example.services', 'mail', remote=False, limit=2, integration=False)
         assert 0 == len(versions)
 
     def test_get_most_recent_versions(self, session, response):
@@ -147,7 +149,8 @@ class TestVersionApiClient(object):
         session.get.return_value = response
 
         http_client = VersionApiDao(session, 'https://www.example.com/artifactory', 'libs-snapshot')
-        versions = http_client.get_most_recent_versions('com.example.services', 'mail', 2, integration=True)
+        versions = http_client.get_most_recent_versions(
+            'com.example.services', 'mail', remote=False, limit=2, integration=True)
 
         assert 2 == len(versions)
         assert '4.441-SNAPSHOT' == versions[0]

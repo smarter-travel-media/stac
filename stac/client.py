@@ -44,11 +44,11 @@ class ArtifactoryClient(object):
         pass
 
     @abstractmethod
-    def get_latest_version(self, full_name):
+    def get_latest_version(self, full_name, remote=False):
         pass
 
     @abstractmethod
-    def get_latest_versions(self, full_name, limit=DEFAULT_VERSION_LIMIT):
+    def get_latest_versions(self, full_name, remote=False, limit=DEFAULT_VERSION_LIMIT):
         pass
 
 
@@ -177,7 +177,7 @@ class GenericArtifactoryClient(ArtifactoryClient):
         group, artifact = _parse_full_name(full_name)
         return self._urls.get_url(group, artifact, packaging, version, descriptor)
 
-    def get_latest_version(self, full_name):
+    def get_latest_version(self, full_name, remote=False):
         """Get the most recent version of the given project.
 
         The name of the artifact should be composed of the group ID and artifact ID
@@ -195,6 +195,9 @@ class GenericArtifactoryClient(ArtifactoryClient):
         This method makes a single network request.
 
         :param str full_name: Fully qualified name of the artifact to get the version of.
+        :param bool remote: Should remote repositories be searched to find the latest version
+            (for example if the repository being checked is a virtual repository)? Note that
+            this can make the search much slower. The default is not to check remote repositories.
         :return: Version number of the latest version of the artifact
         :rtype: str
         :raises stac.exceptions.NoMatchingVersionsError: If no matching artifact could
@@ -203,9 +206,9 @@ class GenericArtifactoryClient(ArtifactoryClient):
         group, artifact = _parse_full_name(full_name)
         try:
             if not self._is_integration:
-                version = self._get_latest_release_version(group, artifact)
+                version = self._get_latest_release_version(group, artifact, remote)
             else:
-                version = self._get_latest_snapshot_version(group, artifact)
+                version = self._get_latest_snapshot_version(group, artifact, remote)
         except requests.HTTPError as e:
             # pylint: disable=no-member
             if e.response is not None and e.response.status_code == requests.codes.not_found:
@@ -213,7 +216,7 @@ class GenericArtifactoryClient(ArtifactoryClient):
             raise
         return version
 
-    def get_latest_versions(self, full_name, limit=DEFAULT_VERSION_LIMIT):
+    def get_latest_versions(self, full_name, remote=False, limit=DEFAULT_VERSION_LIMIT):
         """Get the most recent versions of the given project, ordered most recent to least
         recent.
 
@@ -233,6 +236,9 @@ class GenericArtifactoryClient(ArtifactoryClient):
         This method makes a single network request.
 
         :param str full_name: Full qualified name of the artifacts to get the versions of.
+        :param bool remote: Should remote repositories be searched to find the latest versions
+            (for example if the repository being checked is a virtual repository)? Note that
+            this can make the search much slower. The default is not to check remote repositories.
         :param int limit: Only get the ``limit`` most recent versions.
         :return: Most recent versions of the artifact with the given name, ordered with most
             recent first.
@@ -248,7 +254,7 @@ class GenericArtifactoryClient(ArtifactoryClient):
 
         try:
             versions = self._dao.get_most_recent_versions(
-                group, artifact, limit, integration=self._is_integration)
+                group, artifact, remote=remote, limit=limit, integration=self._is_integration)
         except requests.HTTPError as e:
             # pylint: disable=no-member
             if e.response is not None and e.response.status_code == requests.codes.not_found:
@@ -259,11 +265,12 @@ class GenericArtifactoryClient(ArtifactoryClient):
             raise self._get_wrapped_exception(group, artifact)
         return versions
 
-    def _get_latest_release_version(self, group, artifact):
-        return self._dao.get_most_recent_release(group, artifact)
+    def _get_latest_release_version(self, group, artifact, remote):
+        return self._dao.get_most_recent_release(group, artifact, remote=remote)
 
-    def _get_latest_snapshot_version(self, group, artifact):
-        snapshot_versions = self._dao.get_most_recent_versions(group, artifact, 1, integration=True)
+    def _get_latest_snapshot_version(self, group, artifact, remote):
+        snapshot_versions = self._dao.get_most_recent_versions(
+            group, artifact, remote=remote, limit=1, integration=True)
         if not snapshot_versions:
             raise self._get_wrapped_exception(group, artifact)
         return snapshot_versions[0]
