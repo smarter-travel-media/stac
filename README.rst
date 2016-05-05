@@ -49,7 +49,7 @@ Using Stac is easy!
 Documentation
 -------------
 
-The latest documentation is available at https://stac.readthedocs.org/en/latest/
+The latest documentation is available at https://stac.readthedocs.io/en/latest/
 
 Source
 ------
@@ -64,4 +64,4 @@ Python packages are available at https://pypi.python.org/pypi/stac
 Changes
 -------
 
-The change log is available at https://stac.readthedocs.org/en/latest/changes.html
+The change log is available at https://stac.readthedocs.io/en/latest/changes.html
